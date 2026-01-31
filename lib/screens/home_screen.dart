@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../core/storage_keys.dart';
 import '../features/diagnosis/data/programs.dart';
 import 'program_screen.dart';
+import 'paywall_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -67,21 +68,13 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         actions: [
           ElevatedButton(
-            onPressed: () async {
-              final prefs = await SharedPreferences.getInstance();
-              await prefs.setInt(StorageKeys.stage, 2);
-              await prefs.setInt(StorageKeys.day, 1);
+            onPressed: () {
+              Navigator.pop(context);
 
-              if (context.mounted) {
-                Navigator.pop(context);
-
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ProgramScreen()),
-                );
-
-                await _loadData();
-              }
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PaywallScreen()),
+              );
             },
             child: const Text('2단계 운동 시작하기'),
           ),
@@ -110,6 +103,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+
     if (isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -121,26 +117,25 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               '오늘의 운동',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               'Stage $stage / Day $day',
-              style: const TextStyle(fontSize: 18, color: Colors.grey),
+              style: textTheme.titleMedium?.copyWith(color: Colors.grey),
             ),
             const SizedBox(height: 32),
             if (program.isEmpty)
-              const Text('진행 중인 프로그램이 없습니다.', style: TextStyle(fontSize: 16))
+              Text('진행 중인 프로그램이 없습니다.', style: textTheme.bodyMedium)
             else
               ...program.map((exercise) {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: Text(
-                    '• $exercise',
-                    style: const TextStyle(fontSize: 16),
-                  ),
+                  child: Text('• $exercise', style: textTheme.bodyMedium),
                 );
               }).toList(),
             const Spacer(),
