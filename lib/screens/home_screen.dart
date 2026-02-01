@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/storage_keys.dart';
+import '../core/extensions/context_theme.dart';
+import '../core/utils/progress_helper.dart';
+import '../core/config/stage_config.dart';
 import '../features/diagnosis/data/programs.dart';
 import 'program_screen.dart';
-import 'paywall_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,7 +16,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String diagnosisCode = '';
-  List<String> program = [];
   int day = 1;
   int stage = 1;
   bool isLoading = true;
@@ -25,20 +26,18 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadData();
   }
 
+  // Phase2: Firebase 대비 abstraction point
+  Future<SharedPreferences> _prefs() async {
+    return SharedPreferences.getInstance();
+  }
+
   Future<void> _loadData() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    final dx = prefs.getString(StorageKeys.diagnosisCode) ?? '';
-    final d = prefs.getInt(StorageKeys.day) ?? 1;
-    final s = prefs.getInt(StorageKeys.stage) ?? 1;
-
-    final todayProgram = programs[dx]?[s] ?? <String>[];
+    final prefs = await _prefs();
 
     setState(() {
-      diagnosisCode = dx;
-      day = d;
-      stage = s;
-      program = todayProgram;
+      diagnosisCode = prefs.getString(StorageKeys.diagnosisCode) ?? '';
+      day = prefs.getInt(StorageKeys.day) ?? 1;
+      stage = prefs.getInt(StorageKeys.stage) ?? 1;
       isLoading = false;
     });
   }
@@ -70,23 +69,13 @@ class _HomeScreenState extends State<HomeScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const PaywallScreen()),
-              );
+              Navigator.pushNamed(context, '/paywall');
             },
             child: const Text('2단계 운동 시작하기'),
           ),
           TextButton(
-            onPressed: () async {
-              final prefs = await SharedPreferences.getInstance();
-              await prefs.setInt(StorageKeys.day, 1);
-
-              if (context.mounted) {
-                Navigator.pop(context);
-                await _loadData();
-              }
+            onPressed: () {
+              Navigator.pop(context);
             },
             child: const Text('기존 루틴 계속하기 (무료)'),
           ),
@@ -101,14 +90,50 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // 🔑 stage 판단은 build 밖 메서드로 분리
+  Widget _buildBody() {
+    if (stage == 1) return _buildFreeHome();
+    return _buildPaidHome();
+  }
+
+  Widget _buildFreeHome() {
+    final maxDays = getStage1Days(diagnosisCode);
+    final progress = getStageProgress(day, maxDays);
+    // 🔑 program은 여기서 즉시 계산 — state 아님
+    final todayProgram = programs[diagnosisCode]?[stage] ?? <String>[];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ProgressSection(
+          stage: stage,
+          day: day,
+          maxDays: maxDays,
+          progress: progress,
+        ),
+        const SizedBox(height: 24),
+        TodayProgramList(program: todayProgram),
+      ],
+    );
+  }
+
+  Widget _buildPaidHome() {
+    final todayProgram = programs[diagnosisCode]?[stage] ?? <String>[];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [TodayProgramList(program: todayProgram)],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-
     if (isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
+
+    // 🔑 program은 _buildBody 내부에서 계산되므로 여기서 참조 불가
+    final todayProgram = programs[diagnosisCode]?[stage] ?? <String>[];
 
     return Scaffold(
       appBar: AppBar(title: const Text('홈')),
@@ -117,37 +142,122 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Expanded(child: _buildBody()),
+            if (todayProgram.isNotEmpty) _BottomCTA(onTap: _handleContinue),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── ProgressSection ────────────────────────────────────────
+
+class ProgressSection extends StatelessWidget {
+  final int stage;
+  final int day;
+  final int maxDays;
+  final double progress;
+
+  const ProgressSection({
+    super.key,
+    required this.stage,
+    required this.day,
+    required this.maxDays,
+    required this.progress,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
             Text(
-              '오늘의 운동',
-              style: textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              'Stage $stage',
+              // 🔑 copyWith 제거 — Theme에서 정의
+              style: context.textTheme.titleLarge,
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Stage $stage / Day $day',
-              style: textTheme.titleMedium?.copyWith(color: Colors.grey),
-            ),
-            const SizedBox(height: 32),
-            if (program.isEmpty)
-              Text('진행 중인 프로그램이 없습니다.', style: textTheme.bodyMedium)
-            else
-              ...program.map((exercise) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Text('• $exercise', style: textTheme.bodyMedium),
-                );
-              }).toList(),
-            const Spacer(),
-            if (program.isNotEmpty)
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _handleContinue,
-                  child: const Text('계속하기'),
+            Text('Day $day / $maxDays', style: context.textTheme.bodyMedium),
+          ],
+        ),
+        const SizedBox(height: 12),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          // 🔑 valueColor, backgroundColor 제거 — Theme 기본값 사용
+          child: LinearProgressIndicator(value: progress, minHeight: 10),
+        ),
+      ],
+    );
+  }
+}
+
+// ─── TodayProgramList ───────────────────────────────────────
+
+class TodayProgramList extends StatelessWidget {
+  final List<String> program;
+
+  const TodayProgramList({super.key, required this.program});
+
+  @override
+  Widget build(BuildContext context) {
+    if (program.isEmpty) {
+      return Text('진행 중인 프로그램이 없습니다.', style: context.textTheme.bodyMedium);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '오늘의 운동',
+          // 🔑 copyWith 제거 — Theme에서 정의
+          style: context.textTheme.titleMedium,
+        ),
+        const SizedBox(height: 16),
+        ...program.map((exercise) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.fitness_center,
+                      // 🔑 color 직접 지정 제거 — Icon Theme 기본값 사용
+                    ),
+                    const SizedBox(width: 12),
+                    Text(exercise, style: context.textTheme.bodyMedium),
+                  ],
                 ),
               ),
-          ],
+            ),
+          );
+        }).toList(),
+      ],
+    );
+  }
+}
+
+// ─── _BottomCTA ─────────────────────────────────────────────
+
+class _BottomCTA extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _BottomCTA({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: onTap,
+        child: Text(
+          '계속하기',
+          // 🔑 copyWith 제거 — Theme에서 정의
+          style: context.textTheme.titleMedium,
         ),
       ),
     );
