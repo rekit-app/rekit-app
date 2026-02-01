@@ -42,11 +42,9 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
     if (_isDiagnosisCode(next)) {
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (_) =>
-              ResultScreen(bodyPart: widget.bodyPart, diagnosisCode: next),
-        ),
+        MaterialPageRoute(builder: (_) => const ResultScreen()),
       );
+
       return;
     }
 

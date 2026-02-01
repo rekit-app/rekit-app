@@ -6,6 +6,7 @@ import '../core/utils/progress_helper.dart';
 import '../core/config/stage_config.dart';
 import '../features/diagnosis/data/programs.dart';
 import 'program_screen.dart';
+import 'stage_complete_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -49,45 +50,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     if (enteredStage2 == true) {
-      _showStage2Dialog();
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const StageCompleteScreen()),
+      );
     }
 
     await _loadData();
-  }
-
-  void _showStage2Dialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        title: const Text('🎉 몸의 움직임이 충분히 회복되었습니다'),
-        content: const Text(
-          '지금까지는 관절 가동성과 스트레칭 단계였습니다.\n'
-          '이제 근력 저하를 개선하는 2단계 운동을 시작할 수 있습니다.',
-        ),
-        actions: [
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, '/paywall');
-            },
-            child: const Text('2단계 운동 시작하기'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: const Text('기존 루틴 계속하기 (무료)'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: const Text('오늘은 여기까지'),
-          ),
-        ],
-      ),
-    );
   }
 
   // 🔑 stage 판단은 build 밖 메서드로 분리
