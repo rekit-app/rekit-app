@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../core/extensions/context_theme.dart';
 import '../core/storage_keys.dart';
 import '../core/config/stage_config.dart';
+import '../core/config/demo_mode.dart';
+import '../core/utils/storage_helper.dart';
 import '../features/diagnosis/data/programs.dart';
 
 class ProgramScreen extends StatefulWidget {
@@ -24,40 +27,44 @@ class _ProgramScreenState extends State<ProgramScreen> {
     _loadData();
   }
 
-  Future<SharedPreferences> _prefs() async {
-    return SharedPreferences.getInstance();
-  }
-
   Future<void> _loadData() async {
-    final prefs = await _prefs();
+    final data = await _readProgramState();
 
     setState(() {
-      diagnosisCode = prefs.getString(StorageKeys.diagnosisCode) ?? '';
-      day = prefs.getInt(StorageKeys.day) ?? 1;
-      stage = prefs.getInt(StorageKeys.stage) ?? 1;
+      diagnosisCode = data.$1;
+      day = data.$2;
+      stage = data.$3;
       isLoading = false;
     });
+  }
+
+  Future<(String, int, int)> _readProgramState() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    return (
+      prefs.getString(StorageKeys.diagnosisCode) ?? '',
+      prefs.getInt(StorageKeys.day) ?? 1,
+      prefs.getInt(StorageKeys.stage) ?? 1,
+    );
   }
 
   Future<void> _completeDay() async {
     if (diagnosisCode.isEmpty) return;
 
-    final prefs = await _prefs();
-    final maxDays = getStage1Days(diagnosisCode);
-    final nextDay = day + 1;
-    final enteredStage2 = nextDay > maxDays;
-
-    await prefs.setInt(StorageKeys.day, nextDay);
+    final increment = getDemoDayIncrement();
+    await advanceDay(increment: increment);
 
     if (!mounted) return;
 
-    if (enteredStage2) {
-      await Future.delayed(const Duration(milliseconds: 600));
-      if (!mounted) return;
-      Navigator.pop(context, true);
-    } else {
-      Navigator.pop(context, false);
+    if (stage == 1) {
+      final maxDays = getStage1Days(diagnosisCode);
+      if (day >= maxDays) {
+        Navigator.pop(context, true);
+        return;
+      }
     }
+
+    Navigator.pop(context);
   }
 
   Future<void> _onCompleteTap() async {
@@ -73,7 +80,7 @@ class _ProgramScreenState extends State<ProgramScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    final todayProgram = programs[diagnosisCode]![stage]!;
+    final todayProgram = programs[diagnosisCode]?[stage] ?? <String>[];
 
     return Scaffold(
       appBar: AppBar(title: const Text('오늘의 운동')),
@@ -109,9 +116,9 @@ class _ExerciseItem extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              Icon(Icons.fitness_center),
+              const Icon(Icons.fitness_center),
               const SizedBox(width: 12),
-              Text(title, style: Theme.of(context).textTheme.bodyMedium),
+              Text(title, style: context.textTheme.bodyMedium),
             ],
           ),
         ),
@@ -134,7 +141,6 @@ class _BottomSection extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       child: Stack(
         children: [
-          // 완료 버튼
           AnimatedOpacity(
             opacity: isCompleted ? 0.0 : 1.0,
             duration: const Duration(milliseconds: 200),
@@ -142,14 +148,10 @@ class _BottomSection extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: isCompleted ? null : onTap,
-                child: Text(
-                  '오늘 운동 완료',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
+                child: Text('오늘 운동 완료', style: context.textTheme.titleMedium),
               ),
             ),
           ),
-          // 완료 피드백
           if (isCompleted)
             Center(
               child: Column(

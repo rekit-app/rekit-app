@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../core/storage_keys.dart';
 import '../core/extensions/context_theme.dart';
 import '../core/utils/progress_helper.dart';
 import '../core/config/stage_config.dart';
 import '../features/diagnosis/data/programs.dart';
+import '../core/utils/storage_helper.dart';
+import '../core/storage_keys.dart';
 import 'program_screen.dart';
 import 'stage_complete_screen.dart';
+import 'intro_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -27,20 +29,25 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadData();
   }
 
-  // Phase2: Firebase 대비 abstraction point
-  Future<SharedPreferences> _prefs() async {
-    return SharedPreferences.getInstance();
-  }
-
   Future<void> _loadData() async {
-    final prefs = await _prefs();
+    final data = await _readHomeState();
 
     setState(() {
-      diagnosisCode = prefs.getString(StorageKeys.diagnosisCode) ?? '';
-      day = prefs.getInt(StorageKeys.day) ?? 1;
-      stage = prefs.getInt(StorageKeys.stage) ?? 1;
+      diagnosisCode = data.$1;
+      day = data.$2;
+      stage = data.$3;
       isLoading = false;
     });
+  }
+
+  Future<(String, int, int)> _readHomeState() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    return (
+      prefs.getString(StorageKeys.diagnosisCode) ?? '',
+      prefs.getInt(StorageKeys.day) ?? 1,
+      prefs.getInt(StorageKeys.stage) ?? 1,
+    );
   }
 
   Future<void> _handleContinue() async {
@@ -59,7 +66,6 @@ class _HomeScreenState extends State<HomeScreen> {
     await _loadData();
   }
 
-  // 🔑 stage 판단은 build 밖 메서드로 분리
   Widget _buildBody() {
     if (stage == 1) return _buildFreeHome();
     return _buildPaidHome();
@@ -68,30 +74,53 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildFreeHome() {
     final maxDays = getStage1Days(diagnosisCode);
     final progress = getStageProgress(day, maxDays);
-    // 🔑 program은 여기서 즉시 계산 — state 아님
     final todayProgram = programs[diagnosisCode]?[stage] ?? <String>[];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ProgressSection(
-          stage: stage,
-          day: day,
-          maxDays: maxDays,
-          progress: progress,
-        ),
-        const SizedBox(height: 24),
-        TodayProgramList(program: todayProgram),
-      ],
+    return LayoutBuilder(
+      builder: (ctx, constraints) {
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ProgressSection(
+                  stage: stage,
+                  day: day,
+                  maxDays: maxDays,
+                  progress: progress,
+                ),
+                const SizedBox(height: 24),
+                TodayProgramList(program: todayProgram),
+                if (todayProgram.isNotEmpty) _BottomCTA(onTap: _handleContinue),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
   Widget _buildPaidHome() {
     final todayProgram = programs[diagnosisCode]?[stage] ?? <String>[];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [TodayProgramList(program: todayProgram)],
+    return LayoutBuilder(
+      builder: (ctx, constraints) {
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Day $day', style: context.textTheme.titleLarge),
+                const SizedBox(height: 24),
+                TodayProgramList(program: todayProgram),
+                if (todayProgram.isNotEmpty) _BottomCTA(onTap: _handleContinue),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -101,21 +130,25 @@ class _HomeScreenState extends State<HomeScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    // 🔑 program은 _buildBody 내부에서 계산되므로 여기서 참조 불가
-    final todayProgram = programs[diagnosisCode]?[stage] ?? <String>[];
-
     return Scaffold(
-      appBar: AppBar(title: const Text('홈')),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(child: _buildBody()),
-            if (todayProgram.isNotEmpty) _BottomCTA(onTap: _handleContinue),
-          ],
-        ),
+      appBar: AppBar(
+        title: const Text('홈'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.restart_alt),
+            onPressed: () async {
+              await resetDiagnosis();
+              if (context.mounted) {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const IntroScreen()),
+                  (_) => false,
+                );
+              }
+            },
+          ),
+        ],
       ),
+      body: Padding(padding: const EdgeInsets.all(24), child: _buildBody()),
     );
   }
 }
@@ -144,18 +177,13 @@ class ProgressSection extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Stage $stage',
-              // 🔑 copyWith 제거 — Theme에서 정의
-              style: context.textTheme.titleLarge,
-            ),
+            Text('Stage $stage', style: context.textTheme.titleLarge),
             Text('Day $day / $maxDays', style: context.textTheme.bodyMedium),
           ],
         ),
         const SizedBox(height: 12),
         ClipRRect(
           borderRadius: BorderRadius.circular(8),
-          // 🔑 valueColor, backgroundColor 제거 — Theme 기본값 사용
           child: LinearProgressIndicator(value: progress, minHeight: 10),
         ),
       ],
@@ -179,11 +207,7 @@ class TodayProgramList extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '오늘의 운동',
-          // 🔑 copyWith 제거 — Theme에서 정의
-          style: context.textTheme.titleMedium,
-        ),
+        Text('오늘의 운동', style: context.textTheme.titleMedium),
         const SizedBox(height: 16),
         ...program.map((exercise) {
           return Padding(
@@ -193,10 +217,7 @@ class TodayProgramList extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.fitness_center,
-                      // 🔑 color 직접 지정 제거 — Icon Theme 기본값 사용
-                    ),
+                    const Icon(Icons.fitness_center),
                     const SizedBox(width: 12),
                     Text(exercise, style: context.textTheme.bodyMedium),
                   ],
@@ -223,11 +244,7 @@ class _BottomCTA extends StatelessWidget {
       width: double.infinity,
       child: ElevatedButton(
         onPressed: onTap,
-        child: Text(
-          '계속하기',
-          // 🔑 copyWith 제거 — Theme에서 정의
-          style: context.textTheme.titleMedium,
-        ),
+        child: Text('계속하기', style: context.textTheme.titleMedium),
       ),
     );
   }
