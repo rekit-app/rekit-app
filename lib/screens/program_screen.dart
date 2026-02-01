@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/storage_keys.dart';
-import '../features/diagnosis/data/programs.dart';
 import '../core/config/stage_config.dart';
+import '../features/diagnosis/data/programs.dart';
 
 class ProgramScreen extends StatefulWidget {
   const ProgramScreen({super.key});
@@ -13,65 +13,58 @@ class ProgramScreen extends StatefulWidget {
 
 class _ProgramScreenState extends State<ProgramScreen> {
   String diagnosisCode = '';
+  int day = 1;
   int stage = 1;
-  List<String> program = [];
-  List<bool> checked = [];
   bool isLoading = true;
+  bool isCompleted = false;
 
   @override
   void initState() {
     super.initState();
-    _loadProgram();
+    _loadData();
   }
 
-  Future<void> _loadProgram() async {
-    final prefs = await SharedPreferences.getInstance();
+  Future<SharedPreferences> _prefs() async {
+    return SharedPreferences.getInstance();
+  }
 
-    final dx = prefs.getString(StorageKeys.diagnosisCode) ?? '';
-    final s = prefs.getInt(StorageKeys.stage) ?? 1;
-
-    final programList = programs[dx]?[s] ?? <String>[];
+  Future<void> _loadData() async {
+    final prefs = await _prefs();
 
     setState(() {
-      diagnosisCode = dx;
-      stage = s;
-      program = programList;
-      checked = List.generate(programList.length, (_) => false);
+      diagnosisCode = prefs.getString(StorageKeys.diagnosisCode) ?? '';
+      day = prefs.getInt(StorageKeys.day) ?? 1;
+      stage = prefs.getInt(StorageKeys.stage) ?? 1;
       isLoading = false;
     });
   }
 
-  Future<void> _handleComplete() async {
-    if (!checked.every((c) => c)) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('모든 운동을 완료해주세요')));
-      return;
-    }
+  Future<void> _completeDay() async {
+    if (diagnosisCode.isEmpty) return;
 
-    final prefs = await SharedPreferences.getInstance();
-
-    int day = prefs.getInt(StorageKeys.day) ?? 1;
-    int stage = prefs.getInt(StorageKeys.stage) ?? 1;
-
-    day++;
-
-    bool enteredStage2 = false;
-
+    final prefs = await _prefs();
     final maxDays = getStage1Days(diagnosisCode);
+    final nextDay = day + 1;
+    final enteredStage2 = nextDay > maxDays;
 
-    if (stage == 1 && day > maxDays) {
-      stage = 2;
-      day = 1;
-      enteredStage2 = true;
+    await prefs.setInt(StorageKeys.day, nextDay);
+
+    if (!mounted) return;
+
+    if (enteredStage2) {
+      await Future.delayed(const Duration(milliseconds: 600));
+      if (!mounted) return;
+      Navigator.pop(context, true);
+    } else {
+      Navigator.pop(context, false);
     }
+  }
 
-    await prefs.setInt(StorageKeys.day, day);
-    await prefs.setInt(StorageKeys.stage, stage);
-
-    if (mounted) {
-      Navigator.pop(context, enteredStage2);
-    }
+  Future<void> _onCompleteTap() async {
+    setState(() => isCompleted = true);
+    await Future.delayed(const Duration(milliseconds: 800));
+    if (!mounted) return;
+    await _completeDay();
   }
 
   @override
@@ -80,49 +73,95 @@ class _ProgramScreenState extends State<ProgramScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    final todayProgram = programs[diagnosisCode]![stage]!;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('운동 프로그램')),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              '오늘의 운동',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+      appBar: AppBar(title: const Text('오늘의 운동')),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(24),
+              itemCount: todayProgram.length,
+              itemBuilder: (ctx, i) => _ExerciseItem(title: todayProgram[i]),
             ),
-            const SizedBox(height: 24),
-            if (program.isEmpty)
-              const Text('운동 프로그램이 없습니다.', style: TextStyle(fontSize: 16))
-            else
-              Expanded(
-                child: ListView.builder(
-                  itemCount: program.length,
-                  itemBuilder: (context, index) {
-                    return CheckboxListTile(
-                      title: Text(program[index]),
-                      value: checked[index],
-                      onChanged: (value) {
-                        setState(() {
-                          checked[index] = value ?? false;
-                        });
-                      },
-                    );
-                  },
-                ),
-              ),
-            if (program.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _handleComplete,
-                  child: const Text('완료'),
-                ),
-              ),
+          ),
+          _BottomSection(isCompleted: isCompleted, onTap: _onCompleteTap),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── _ExerciseItem ──────────────────────────────────────────
+
+class _ExerciseItem extends StatelessWidget {
+  final String title;
+
+  const _ExerciseItem({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Icon(Icons.fitness_center),
+              const SizedBox(width: 12),
+              Text(title, style: Theme.of(context).textTheme.bodyMedium),
             ],
-          ],
+          ),
         ),
+      ),
+    );
+  }
+}
+
+// ─── _BottomSection ─────────────────────────────────────────
+
+class _BottomSection extends StatelessWidget {
+  final bool isCompleted;
+  final VoidCallback onTap;
+
+  const _BottomSection({required this.isCompleted, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      child: Stack(
+        children: [
+          // 완료 버튼
+          AnimatedOpacity(
+            opacity: isCompleted ? 0.0 : 1.0,
+            duration: const Duration(milliseconds: 200),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: isCompleted ? null : onTap,
+                child: Text(
+                  '오늘 운동 완료',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+            ),
+          ),
+          // 완료 피드백
+          if (isCompleted)
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(Icons.check_circle_outline, size: 48),
+                  SizedBox(height: 12),
+                  Text('오늘 운동 완료!'),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }
