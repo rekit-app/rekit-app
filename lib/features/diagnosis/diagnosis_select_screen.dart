@@ -54,71 +54,104 @@ class _DiagnosisSelectScreenState extends State<DiagnosisSelectScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
-          child: Column(
-            children: [
-              // Header
-              Text(
-                '어디가 불편하신가요?',
-                style: text.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '통증 부위를 선택하시면\n맞춤 프로그램을 추천해 드립니다.',
-                style: text.bodyMedium?.copyWith(
-                  color: colors.onSurfaceVariant,
-                  height: 1.5,
-                ),
-                textAlign: TextAlign.center,
-              ),
-
-              const SizedBox(height: 40),
-
-              // Selection cards
-              ...List.generate(_bodyParts.length, (index) {
-                final part = _bodyParts[index];
-                final isSelected = _selectedIndex == index;
-
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _SelectionCard(
-                    icon: part.icon,
-                    label: part.label,
-                    description: part.description,
-                    isSelected: isSelected,
-                    onTap: () {
-                      setState(() {
-                        _selectedIndex = index;
-                      });
-                    },
-                  ),
-                );
-              }),
-
-              const Spacer(),
-
-              // CTA button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _selectedIndex != null ? _onConfirm : null,
-                  child: Text(
-                    '다음',
-                    style: text.titleMedium?.copyWith(
-                      color: _selectedIndex != null
-                          ? colors.onPrimary
-                          : colors.onSurfaceVariant,
-                      fontWeight: FontWeight.w700,
+        child: Column(
+          children: [
+            // Visual header area
+            Padding(
+              padding: const EdgeInsets.only(top: 24),
+              child: Column(
+                children: [
+                  // Hero illustration
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      color: colors.primaryContainer,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.health_and_safety_rounded,
+                      size: 48,
+                      color: colors.primary,
                     ),
                   ),
+                  const SizedBox(height: 24),
+
+                  // Title
+                  Text(
+                    '어디가 불편하신가요?',
+                    style: text.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Subtitle
+                  Text(
+                    '맞춤 재활을 위해 통증 부위를 알려주세요.',
+                    style: text.bodyMedium?.copyWith(
+                      color: colors.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 32),
+
+            // Selection cards
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    ...List.generate(_bodyParts.length, (index) {
+                      final part = _bodyParts[index];
+                      final isSelected = _selectedIndex == index;
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _SelectionCard(
+                          icon: part.icon,
+                          label: part.label,
+                          description: part.description,
+                          isSelected: isSelected,
+                          onTap: () {
+                            setState(() {
+                              _selectedIndex = index;
+                            });
+                          },
+                        ),
+                      );
+                    }),
+
+                    const Spacer(),
+
+                    // CTA button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed:
+                            _selectedIndex != null ? _onConfirm : null,
+                        child: Text(
+                          '다음',
+                          style: text.titleMedium?.copyWith(
+                            color: _selectedIndex != null
+                                ? colors.onPrimary
+                                : colors.onSurfaceVariant,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -169,7 +202,7 @@ class _SelectionCard extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: colors.surface,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(24),
           border: Border.all(
             color: isSelected ? colors.primary : colors.outlineVariant,
             width: isSelected ? 2 : 1,
