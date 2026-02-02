@@ -7,7 +7,7 @@ import '../features/diagnosis/data/programs.dart';
 import '../core/ui/soft_card.dart';
 
 class ProgramScreen extends StatefulWidget {
-  const ProgramScreen({super.key});
+  ProgramScreen({super.key});
 
   @override
   State<ProgramScreen> createState() => _ProgramScreenState();
@@ -86,7 +86,7 @@ class _ProgramScreenState extends State<ProgramScreen> {
   @override
   Widget build(BuildContext context) {
     if (isLoading || diagnosisCode == null) {
-      return const Scaffold(
+      return Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
     }
@@ -94,7 +94,7 @@ class _ProgramScreenState extends State<ProgramScreen> {
     final routine = programs[diagnosisCode]?[stage] ?? [];
 
     if (routine.isEmpty) {
-      return const Scaffold(
+      return Scaffold(
         body: Center(child: Text('프로그램을 불러올 수 없습니다')),
       );
     }
@@ -107,7 +107,7 @@ class _ProgramScreenState extends State<ProgramScreen> {
             LinearProgressIndicator(
               value: (currentIndex + 1) / routine.length,
               minHeight: 4,
-              backgroundColor: context.colorScheme.surfaceContainerHighest,
+              backgroundColor: context.colorScheme.surfaceVariant,
             ),
 
             // Top Bar
@@ -170,7 +170,7 @@ class _TopBar extends StatelessWidget {
             'Day $day',
             style: context.textTheme.titleMedium,
           ),
-          const Spacer(),
+          Spacer(),
           IconButton(
             icon: const Icon(Icons.info_outline),
             onPressed: () {}, // empty

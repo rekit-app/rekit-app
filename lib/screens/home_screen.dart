@@ -17,7 +17,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String? diagnosisCode;
-  int day = 0;
+  int day = 1;
   int stage = 1;
   bool isLoading = true;
   bool _blockingPaywall = false;
@@ -53,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final enteredStage2 = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => const ProgramScreen(),
+        builder: (_) => ProgramScreen(),
       ),
     );
 
@@ -91,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
               // PaywallScreen으로 이동
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const PaywallScreen()),
+                MaterialPageRoute(builder: (_) => PaywallScreen()),
               );
             },
             child: const Text('잠금 해제'),
@@ -216,46 +216,68 @@ class TodayProgramHeroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(28),
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: context.colorScheme.primaryContainer,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(28),
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF1D3557),
+              Color(0xFF457B9D),
+            ],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF1D3557).withValues(alpha: 0.25),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Program Title
+            // Program Title (Primary)
             Text(
               programTitle,
-              style: context.titleMedium,
+              style: context.titleLarge.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
-            const SizedBox(height: 8),
 
-            // Stage / Day
+            const SizedBox(height: 6),
+
+            // Stage · Day (Secondary)
             Text(
               'Stage $stage · Day $day',
               style: context.bodySmall.copyWith(
-                color: context.colorScheme.onSurface.withValues(alpha: 0.7),
+                color: Colors.white.withValues(alpha: 0.6),
               ),
             ),
-            const SizedBox(height: 16),
+
+            const SizedBox(height: 18),
 
             // CTA
             Text(
               '탭해서 운동 시작 →',
               style: context.textTheme.labelLarge!.copyWith(
-                color: context.colorScheme.primary,
+                color: Colors.white,
               ),
             ),
-            const SizedBox(height: 12),
 
-            // Progress Bar
+            const SizedBox(height: 14),
+
+            // Progress
             LinearProgressIndicator(
               value: progress,
               minHeight: 4,
-              backgroundColor: context.colorScheme.surfaceContainerHighest,
+              backgroundColor: Colors.white.withValues(alpha: 0.25),
+              valueColor: const AlwaysStoppedAnimation(Colors.white),
               borderRadius: BorderRadius.circular(2),
             ),
           ],
