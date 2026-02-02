@@ -154,6 +154,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   programTitle: '어깨 가동성 운동 프로그램',
                   stage: stage,
                   day: day,
+                  maxDays: maxDays,
+                  exerciseCount: routine.length,
                   progress: progress,
                   onTap: _handleHeroCardTap,
                 ),
@@ -202,6 +204,8 @@ class TodayProgramHeroCard extends StatelessWidget {
   final String programTitle;
   final int stage;
   final int day;
+  final int maxDays;
+  final int exerciseCount;
   final double progress;
   final VoidCallback onTap;
 
@@ -210,19 +214,22 @@ class TodayProgramHeroCard extends StatelessWidget {
     required this.programTitle,
     required this.stage,
     required this.day,
+    required this.maxDays,
+    required this.exerciseCount,
     required this.progress,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    final progressPercent = (progress * 100).toInt();
+
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(28),
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(24),
           gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -233,17 +240,48 @@ class TodayProgramHeroCard extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF1D3557).withValues(alpha: 0.25),
-              blurRadius: 16,
-              offset: const Offset(0, 8),
+              color: const Color(0xFF1D3557).withValues(alpha: 0.3),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
             ),
           ],
         ),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Program Title (Primary)
+            // Top row: Stage badge + exercise count
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'Stage $stage',
+                    style: context.bodySmall.copyWith(
+                      color: Colors.white.withValues(alpha: 0.9),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '$exerciseCount개 운동',
+                  style: context.bodySmall.copyWith(
+                    color: Colors.white.withValues(alpha: 0.6),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // Program title
             Text(
               programTitle,
               style: context.titleLarge.copyWith(
@@ -252,35 +290,63 @@ class TodayProgramHeroCard extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
 
-            // Stage · Day (Secondary)
+            // Day info
             Text(
-              'Stage $stage · Day $day',
-              style: context.bodySmall.copyWith(
-                color: Colors.white.withValues(alpha: 0.6),
+              'Day $day / $maxDays',
+              style: context.bodyMedium.copyWith(
+                color: Colors.white.withValues(alpha: 0.7),
               ),
             ),
 
-            const SizedBox(height: 18),
+            const SizedBox(height: 20),
 
-            // CTA
-            Text(
-              '탭해서 운동 시작 →',
-              style: context.textTheme.labelLarge!.copyWith(
+            // Progress bar with percentage
+            Row(
+              children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 6,
+                      backgroundColor: Colors.white.withValues(alpha: 0.15),
+                      valueColor:
+                          const AlwaysStoppedAnimation(Color(0xFF6EE7B7)),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  '$progressPercent%',
+                  style: context.bodySmall.copyWith(
+                    color: Colors.white.withValues(alpha: 0.8),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            // CTA button
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              decoration: BoxDecoration(
                 color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
               ),
-            ),
-
-            const SizedBox(height: 14),
-
-            // Progress
-            LinearProgressIndicator(
-              value: progress,
-              minHeight: 4,
-              backgroundColor: Colors.white.withValues(alpha: 0.25),
-              valueColor: const AlwaysStoppedAnimation(Colors.white),
-              borderRadius: BorderRadius.circular(2),
+              child: Center(
+                child: Text(
+                  '오늘 운동 시작하기',
+                  style: context.titleMedium.copyWith(
+                    color: const Color(0xFF1D3557),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
             ),
           ],
         ),
