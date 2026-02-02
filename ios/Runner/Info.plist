@@ -32,6 +32,11 @@
     <key>LSSupportsOpeningDocumentsInPlace</key>
     <false/>
 
+    <key>UILaunchStoryboardName</key>
+    <string>LaunchScreen</string>
+
+
+
     <key>NSCameraUsageDescription</key>
     <string>운동 자세 분석 및 향후 기능 제공을 위해 카메라 접근이 필요합니다.</string>
 
@@ -44,26 +49,6 @@
         <true/>
         <key>NSAllowsLocalNetworking</key>
         <true/>
-    </dict>
-
-    <key>UIApplicationSceneManifest</key>
-    <dict>
-        <key>UISceneConfigurations</key>
-        <dict>
-            <key>UIWindowSceneConfiguration</key>
-            <array>
-                <dict>
-                    <key>UISceneConfigurationName</key>
-                    <string></string>
-                    <key>UISceneClass</key>
-                    <string>NSObject</string>
-                    <key>UISceneSessionClass</key>
-                    <string>UIWindowSceneSession</string>
-                    <key>UISceneStoryboardFile</key>
-                    <string>Main</string>
-                </dict>
-            </array>
-        </dict>
     </dict>
 
     <key>UIUserInterfaceStyle</key>

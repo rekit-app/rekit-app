@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import 'core/storage_keys.dart';
-import 'screens/home_screen.dart';
+import 'screens/intro_screen.dart';
 import 'screens/paywall_screen.dart';
 
 Future<void> _migrateLegacyKeys(SharedPreferences prefs) async {
@@ -14,7 +15,10 @@ Future<void> _migrateLegacyKeys(SharedPreferences prefs) async {
   }
 
   if (prefs.containsKey(StorageKeys.legacyDay)) {
-    await prefs.setInt(StorageKeys.day, prefs.getInt(StorageKeys.legacyDay)!);
+    await prefs.setInt(
+      StorageKeys.day,
+      prefs.getInt(StorageKeys.legacyDay)!,
+    );
     await prefs.remove(StorageKeys.legacyDay);
   }
 
@@ -44,9 +48,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       routes: {
-        '/paywall': (_) => const PaywallScreen(), // Sprint 2 등록
+        '/paywall': (_) => const PaywallScreen(),
       },
-      home: const HomeScreen(),
+      home: const IntroScreen(),
     );
   }
 }
