@@ -53,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final enteredStage2 = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ProgramScreen(),
+        builder: (_) => const ProgramScreen(),
       ),
     );
 
@@ -91,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
               // PaywallScreen으로 이동
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => PaywallScreen()),
+                MaterialPageRoute(builder: (_) => const PaywallScreen()),
               );
             },
             child: const Text('잠금 해제'),
@@ -146,7 +146,7 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Greeting Header
-                _GreetingHeader(),
+                const _GreetingHeader(),
                 const SizedBox(height: 16),
 
                 // Today Program Hero Card
@@ -173,6 +173,8 @@ class _HomeScreenState extends State<HomeScreen> {
 // ─── _GreetingHeader ────────────────────────────────────────
 
 class _GreetingHeader extends StatelessWidget {
+  const _GreetingHeader();
+
   @override
   Widget build(BuildContext context) {
     return Column(

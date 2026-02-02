@@ -21,7 +21,7 @@ class PaywallScreen extends StatelessWidget {
     // ProgramScreen으로 이동 (push - Home stack 유지)
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => ProgramScreen()),
+      MaterialPageRoute(builder: (_) => const ProgramScreen()),
     );
   }
 
@@ -59,7 +59,7 @@ class PaywallScreen extends StatelessWidget {
                   // Description
                   Text(
                     'Stage 1을 완료하셨습니다!\n더 강력한 근력 강화 프로그램을 시작하세요.',
-                    style: context.bodyLarge?.copyWith(
+                    style: context.bodyLarge.copyWith(
                       color:
                           context.colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
@@ -88,7 +88,7 @@ class PaywallScreen extends StatelessWidget {
                   // Data Warning
                   Text(
                     '본 버전은 기기 내 저장 방식을 사용하며 앱 삭제 시 진행 데이터가 초기화될 수 있습니다.',
-                    style: context.bodySmall?.copyWith(
+                    style: context.bodySmall.copyWith(
                       color:
                           context.colorScheme.onSurface.withValues(alpha: 0.5),
                     ),
