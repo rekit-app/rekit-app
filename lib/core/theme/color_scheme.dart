@@ -8,8 +8,8 @@ const Color seedGreen = Color(0xFF6B9080);
 const ColorScheme appColorScheme = ColorScheme(
   brightness: Brightness.light,
 
-  // Primary: muted sage green
-  primary: seedGreen,
+  // Primary: ACID TEST — deep purple (revert after verification)
+  primary: Color(0xFF6750A4),
   onPrimary: Color(0xFFFFFFFF),
   primaryContainer: Color(0xFFDCEDE6),
   onPrimaryContainer: Color(0xFF2C4A3E),
@@ -50,5 +50,5 @@ const ColorScheme appColorScheme = ColorScheme(
   inversePrimary: Color(0xFFA8D4C0),
 );
 
-// Scaffold / page background: warm off-white
-const Color scaffoldBackground = Color(0xFFF8F8F6);
+// Scaffold / page background: ACID TEST — obvious lavender (revert after verification)
+const Color scaffoldBackground = Color(0xFFE8E0F0);
