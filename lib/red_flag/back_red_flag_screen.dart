@@ -114,7 +114,7 @@ class BackRedFlagScreen extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
-                                  DiagnosisScreen(bodyPart: BodyPart.back),
+                                  const DiagnosisScreen(bodyPart: BodyPart.back),
                             ),
                           );
                         },

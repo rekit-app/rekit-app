@@ -114,7 +114,7 @@ class NeckRedFlagScreen extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
-                                  DiagnosisScreen(bodyPart: BodyPart.neck),
+                                  const DiagnosisScreen(bodyPart: BodyPart.neck),
                             ),
                           );
                         },

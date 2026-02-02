@@ -93,20 +93,20 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
     return Scaffold(
       appBar: AppBar(title: Text('${widget.bodyPart.displayName} 진단')),
       body: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               questionData['title'],
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 16),
-            Text(questionData['question'], style: TextStyle(fontSize: 16)),
-            SizedBox(height: 24),
+            const SizedBox(height: 16),
+            Text(questionData['question'], style: const TextStyle(fontSize: 16)),
+            const SizedBox(height: 24),
             ...(questionData['options'] as List).map((option) {
               return Padding(
-                padding: EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.only(bottom: 8),
                 child: SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -115,7 +115,7 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
                   ),
                 ),
               );
-            }).toList(),
+            }),
           ],
         ),
       ),

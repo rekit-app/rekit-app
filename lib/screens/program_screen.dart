@@ -153,10 +153,10 @@ class _BottomSection extends StatelessWidget {
             ),
           ),
           if (isCompleted)
-            Center(
+            const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
+                children: [
                   Icon(Icons.check_circle_outline, size: 48),
                   SizedBox(height: 12),
                   Text('오늘 운동 완료!'),

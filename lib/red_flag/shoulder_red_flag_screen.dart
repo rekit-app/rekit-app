@@ -114,7 +114,7 @@ class ShoulderRedFlagScreen extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
-                                  DiagnosisScreen(bodyPart: BodyPart.shoulder),
+                                  const DiagnosisScreen(bodyPart: BodyPart.shoulder),
                             ),
                           );
                         },

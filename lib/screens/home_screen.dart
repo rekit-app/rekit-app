@@ -30,14 +30,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadData() async {
-    final data = await _readHomeState();
+    try {
+      final data = await _readHomeState();
 
-    setState(() {
-      diagnosisCode = data.$1;
-      day = data.$2;
-      stage = data.$3;
-      isLoading = false;
-    });
+      setState(() {
+        diagnosisCode = data.$1;
+        day = data.$2;
+        stage = data.$3;
+        isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Home load error: $e');
+      setState(() => isLoading = false);
+    }
   }
 
   Future<(String, int, int)> _readHomeState() async {
@@ -56,13 +61,16 @@ class _HomeScreenState extends State<HomeScreen> {
       MaterialPageRoute(builder: (_) => const ProgramScreen()),
     );
 
+    if (!mounted) return;
+
     if (enteredStage2 == true) {
-      Navigator.push(
+      await Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const StageCompleteScreen()),
       );
     }
 
+    if (!mounted) return;
     await _loadData();
   }
 
@@ -130,6 +138,39 @@ class _HomeScreenState extends State<HomeScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    if (diagnosisCode.isEmpty || programs[diagnosisCode] == null) {
+      return Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '프로그램 정보를 불러올 수 없습니다.\n다시 진단해주세요.',
+                  textAlign: TextAlign.center,
+                  style: context.textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (_) => const IntroScreen()),
+                      (_) => false,
+                    );
+                  },
+                  child: Text(
+                    '처음으로 돌아가기',
+                    style: context.textTheme.titleMedium,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('홈'),
@@ -148,7 +189,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: Padding(padding: const EdgeInsets.all(24), child: _buildBody()),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: _buildBody(),
+        ),
+      ),
     );
   }
 }
@@ -177,14 +223,23 @@ class ProgressSection extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Stage $stage', style: context.textTheme.titleLarge),
-            Text('Day $day / $maxDays', style: context.textTheme.bodyMedium),
+            Text(
+              'Stage $stage',
+              style: context.textTheme.titleLarge,
+            ),
+            Text(
+              'Day $day / $maxDays',
+              style: context.textTheme.bodyMedium,
+            ),
           ],
         ),
         const SizedBox(height: 12),
         ClipRRect(
           borderRadius: BorderRadius.circular(8),
-          child: LinearProgressIndicator(value: progress, minHeight: 10),
+          child: LinearProgressIndicator(
+            value: progress,
+            minHeight: 10,
+          ),
         ),
       ],
     );
@@ -196,18 +251,27 @@ class ProgressSection extends StatelessWidget {
 class TodayProgramList extends StatelessWidget {
   final List<String> program;
 
-  const TodayProgramList({super.key, required this.program});
+  const TodayProgramList({
+    super.key,
+    required this.program,
+  });
 
   @override
   Widget build(BuildContext context) {
     if (program.isEmpty) {
-      return Text('진행 중인 프로그램이 없습니다.', style: context.textTheme.bodyMedium);
+      return Text(
+        '진행 중인 프로그램이 없습니다.',
+        style: context.textTheme.bodyMedium,
+      );
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('오늘의 운동', style: context.textTheme.titleMedium),
+        Text(
+          '오늘의 운동',
+          style: context.textTheme.titleMedium,
+        ),
         const SizedBox(height: 16),
         ...program.map((exercise) {
           return Padding(
@@ -219,13 +283,16 @@ class TodayProgramList extends StatelessWidget {
                   children: [
                     const Icon(Icons.fitness_center),
                     const SizedBox(width: 12),
-                    Text(exercise, style: context.textTheme.bodyMedium),
+                    Text(
+                      exercise,
+                      style: context.textTheme.bodyMedium,
+                    ),
                   ],
                 ),
               ),
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }
@@ -236,7 +303,9 @@ class TodayProgramList extends StatelessWidget {
 class _BottomCTA extends StatelessWidget {
   final VoidCallback onTap;
 
-  const _BottomCTA({required this.onTap});
+  const _BottomCTA({
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -244,7 +313,10 @@ class _BottomCTA extends StatelessWidget {
       width: double.infinity,
       child: ElevatedButton(
         onPressed: onTap,
-        child: Text('계속하기', style: context.textTheme.titleMedium),
+        child: Text(
+          '계속하기',
+          style: context.textTheme.titleMedium,
+        ),
       ),
     );
   }

@@ -25,7 +25,7 @@ final Map<String, Map<String, dynamic>> shoulderQuestions = {
   },
   'Q04': {
     'title': 'External Rotation 테스트',
-    'question': 'External Rotation하고 팔을 올렸을 때 통증이 줄어드나요?',
+    'question': 'External Rotation하고 팔을 올렐을 때 통증이 줄어드나요?',
     'options': [
       {'text': '통증이 증가함', 'next': 'Q04A'},
       {'text': '통증의 변화가 없음', 'next': 'Q04B'},
@@ -120,15 +120,15 @@ final Map<String, Map<String, dynamic>> shoulderQuestions = {
     'question': '팔을 들어올리고 천천히 내렸을 때(5초~8초) 통증이 발생하거나 힘이 빠지나요?',
     'options': [
       {'text': '네', 'next': 'Q07A1'},
-      {'text': '아니오', 'next': 'RCT_3'},
+      {'text': '아니오', 'next': 'DX_RCT_3'},
     ],
   },
   'Q07A1': {
     'title': '열중쉬엇 동작 (IR)',
     'question': '이 동작이 가능한가요? (열중쉬엇)',
     'options': [
-      {'text': '아니오', 'next': 'RCT_1'},
-      {'text': '네', 'next': 'RCT_2'},
+      {'text': '아니오', 'next': 'DX_RCT_1'},
+      {'text': '네', 'next': 'DX_RCT_2'},
     ],
   },
   'Q07B': {
@@ -136,15 +136,15 @@ final Map<String, Map<String, dynamic>> shoulderQuestions = {
     'question': '팔을 들어올리고 천천히 내렸을 때(5초~8초) 통증이 발생하거나 힘이 빠지나요?',
     'options': [
       {'text': '네', 'next': 'Q07B1'},
-      {'text': '아니오', 'next': 'RCT_6'},
+      {'text': '아니오', 'next': 'DX_RCT_6'},
     ],
   },
   'Q07B1': {
     'title': '열중쉬엇 동작 (ER)',
     'question': '이 동작이 가능한가요? (열중쉬엇)',
     'options': [
-      {'text': '아니오', 'next': 'RCT_4'},
-      {'text': '네', 'next': 'RCT_5'},
+      {'text': '아니오', 'next': 'DX_RCT_4'},
+      {'text': '네', 'next': 'DX_RCT_5'},
     ],
   },
   'Q08': {
@@ -159,16 +159,16 @@ final Map<String, Map<String, dynamic>> shoulderQuestions = {
     'title': '소리/걸림 확인',
     'question': '팔을 내릴 때 어깨에서 소리가 나거나 걸리는 느낌이 있나요?',
     'options': [
-      {'text': '예', 'next': 'IMPINGE_1'},
-      {'text': '아니오', 'next': 'IMPINGE_2'},
+      {'text': '예', 'next': 'DX_IMPINGE_1'},
+      {'text': '아니오', 'next': 'DX_IMPINGE_2'},
     ],
   },
   'Q08B': {
     'title': '찝힘 확인',
     'question': '팔을 들거나 내릴 때 특정 각도에서 찝히는 느낌이 있나요?',
     'options': [
-      {'text': '예', 'next': 'IMPINGE_3'},
-      {'text': '아니오', 'next': 'IMPINGE_4'},
+      {'text': '예', 'next': 'DX_IMPINGE_3'},
+      {'text': '아니오', 'next': 'DX_IMPINGE_4'},
     ],
   },
 };

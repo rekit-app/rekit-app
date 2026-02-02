@@ -12,7 +12,7 @@ class StageCompleteScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.check_circle_outline, size: 80),
+              const Icon(Icons.check_circle_outline, size: 80),
               const SizedBox(height: 24),
               Text('1단계 완료!', style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 16),

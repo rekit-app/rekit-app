@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/storage_keys.dart';
 import '../core/config/stage_config.dart';
+import 'home_screen.dart';
 
 class ResultScreen extends StatelessWidget {
   const ResultScreen({super.key});
@@ -13,8 +14,7 @@ class ResultScreen extends StatelessWidget {
       builder: (ctx, snapshot) {
         if (!snapshot.hasData) {
           return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
+              body: Center(child: CircularProgressIndicator()));
         }
         final data = snapshot.data!;
         return Scaffold(
@@ -33,7 +33,13 @@ class ResultScreen extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () => Navigator.pop(ctx),
+                    onPressed: () {
+                      Navigator.pushAndRemoveUntil(
+                        ctx,
+                        MaterialPageRoute(builder: (_) => const HomeScreen()),
+                        (_) => false,
+                      );
+                    },
                     child: Text(
                       '프로그램 시작하기',
                       style: Theme.of(ctx).textTheme.titleMedium,
@@ -94,7 +100,10 @@ class _DiagnosisSummaryCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('진단 부위', style: Theme.of(context).textTheme.bodySmall),
+            Text(
+              '진단 부위',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
             const SizedBox(height: 4),
             Text(
               data.bodyPartLabel,
@@ -163,11 +172,23 @@ class _StepGuide extends StatelessWidget {
           children: [
             Text('앞으로의 진행', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 16),
-            const _StepRow(step: 1, label: 'ROM 회복 · 스트레칭', active: true),
+            const _StepRow(
+              step: 1,
+              label: 'ROM 회복 · 스트레칭',
+              active: true,
+            ),
             const SizedBox(height: 12),
-            const _StepRow(step: 2, label: '근력 강화', active: false),
+            const _StepRow(
+              step: 2,
+              label: '근력 강화',
+              active: false,
+            ),
             const SizedBox(height: 12),
-            const _StepRow(step: 3, label: '기능 회복', active: false),
+            const _StepRow(
+              step: 3,
+              label: '기능 회복',
+              active: false,
+            ),
           ],
         ),
       ),
@@ -180,11 +201,8 @@ class _StepRow extends StatelessWidget {
   final String label;
   final bool active;
 
-  const _StepRow({
-    required this.step,
-    required this.label,
-    required this.active,
-  });
+  const _StepRow(
+      {required this.step, required this.label, required this.active});
 
   @override
   Widget build(BuildContext context) {
@@ -210,9 +228,8 @@ class _StepRow extends StatelessWidget {
         const SizedBox(width: 12),
         Text(
           label,
-          style: active
-              ? theme.textTheme.bodyMedium
-              : theme.textTheme.bodySmall,
+          style:
+              active ? theme.textTheme.bodyMedium : theme.textTheme.bodySmall,
         ),
       ],
     );
