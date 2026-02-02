@@ -1,29 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../core/extensions/context_theme.dart';
+import '../core/storage_keys.dart';
 import '../core/utils/storage_helper.dart';
 import '../features/diagnosis/data/programs.dart';
 import '../core/ui/soft_card.dart';
 
 class ProgramScreen extends StatefulWidget {
-  final String diagnosisCode;
-  final int day;
-  final int stage;
-
-  const ProgramScreen({
-    super.key,
-    required this.diagnosisCode,
-    required this.day,
-    required this.stage,
-  });
+  const ProgramScreen({super.key});
 
   @override
   State<ProgramScreen> createState() => _ProgramScreenState();
 }
 
 class _ProgramScreenState extends State<ProgramScreen> {
-  late String diagnosisCode;
-  late int day;
-  late int stage;
+  String? diagnosisCode;
+  int day = 1;
+  int stage = 1;
+  bool isLoading = true;
 
   int currentIndex = 0;
   late PageController _pageController;
@@ -32,11 +26,24 @@ class _ProgramScreenState extends State<ProgramScreen> {
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: 0);
+    _loadProgress();
+  }
 
-    // widget에서 값 가져오기 (prefs 접근 금지)
-    diagnosisCode = widget.diagnosisCode;
-    day = widget.day;
-    stage = widget.stage;
+  Future<void> _loadProgress() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final dx = prefs.getString(StorageKeys.diagnosisCode);
+    final d = prefs.getInt(StorageKeys.day) ?? 1;
+    final s = prefs.getInt(StorageKeys.stage) ?? 1;
+
+    if (!mounted) return;
+
+    setState(() {
+      diagnosisCode = dx;
+      day = d;
+      stage = s;
+      isLoading = false;
+    });
   }
 
   @override
@@ -46,15 +53,15 @@ class _ProgramScreenState extends State<ProgramScreen> {
   }
 
   Future<void> _completeDay() async {
-    if (diagnosisCode.isEmpty) return;
+    if (diagnosisCode == null || diagnosisCode!.isEmpty) return;
 
     // ProgramScreen 책임: day +1만 수행
-    await advanceDay(increment: 1);
+    final enteredStage2 = await advanceDay(increment: 1);
 
     if (!mounted) return;
 
     // Stage 완료 판단은 HomeScreen에서 처리
-    Navigator.pop(context);
+    Navigator.pop(context, enteredStage2);
   }
 
   void _onPrevious() {
@@ -78,6 +85,12 @@ class _ProgramScreenState extends State<ProgramScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading || diagnosisCode == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     final routine = programs[diagnosisCode]?[stage] ?? [];
 
     if (routine.isEmpty) {
@@ -94,7 +107,7 @@ class _ProgramScreenState extends State<ProgramScreen> {
             LinearProgressIndicator(
               value: (currentIndex + 1) / routine.length,
               minHeight: 4,
-              backgroundColor: context.colorScheme.surface,
+              backgroundColor: context.colorScheme.surfaceContainerHighest,
             ),
 
             // Top Bar
