@@ -57,10 +57,17 @@ class ResultScreen extends StatelessWidget {
 
 Future<_ResultData> _loadData() async {
   final prefs = await SharedPreferences.getInstance();
+
   final dx = prefs.getString(StorageKeys.diagnosisCode) ?? '';
   final stage = prefs.getInt(StorageKeys.stage) ?? 1;
+
   final maxDays = getStage1Days(dx);
-  return _ResultData(diagnosisCode: dx, stage: stage, maxDays: maxDays);
+
+  return _ResultData(
+    diagnosisCode: dx,
+    stage: stage,
+    maxDays: maxDays,
+  );
 }
 
 class _ResultData {
@@ -75,13 +82,8 @@ class _ResultData {
   });
 
   String get bodyPartLabel {
-    return switch (diagnosisCode) {
-      'knee' => '무릎',
-      'shoulder' => '어깨',
-      'back' => '허리',
-      'ankle' => '발목',
-      _ => '부위 미확인',
-    };
+    if (diagnosisCode.startsWith('DX_')) return '어깨';
+    return '부위 미확인';
   }
 }
 

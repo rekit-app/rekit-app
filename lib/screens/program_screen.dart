@@ -3,7 +3,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../core/extensions/context_theme.dart';
 import '../core/storage_keys.dart';
 import '../core/config/stage_config.dart';
-import '../core/config/demo_mode.dart';
 import '../core/utils/storage_helper.dart';
 import '../features/diagnosis/data/programs.dart';
 
@@ -51,9 +50,7 @@ class _ProgramScreenState extends State<ProgramScreen> {
   Future<void> _completeDay() async {
     if (diagnosisCode.isEmpty) return;
 
-    final increment = getDemoDayIncrement();
-    await advanceDay(increment: increment);
-
+    await advanceDay(increment: 1);
     if (!mounted) return;
 
     if (stage == 1) {

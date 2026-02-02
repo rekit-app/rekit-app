@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'body_part.dart';
 import 'data/shoulder_questions.dart';
 import 'data/neck_questions.dart';
+import '../../core/storage_keys.dart';
 import '../../screens/result_screen.dart';
-
 // import 'data/back_questions.dart';  // 나중에 추가
 
 class DiagnosisScreen extends StatefulWidget {
@@ -38,9 +39,17 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
     return code == 'NECK' || code == 'BACK' || code == 'SHOULDER';
   }
 
-  void _handleAnswer(String next) {
+  Future<void> _handleAnswer(String next) async {
     if (_isDiagnosisCode(next)) {
-      Navigator.push(
+      final prefs = await SharedPreferences.getInstance();
+
+      await prefs.setString(StorageKeys.diagnosisCode, next);
+      await prefs.setInt(StorageKeys.day, 1);
+      await prefs.setInt(StorageKeys.stage, 1);
+
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const ResultScreen()),
       );
@@ -82,7 +91,6 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
     }
 
     final questionData = questions[currentQuestion];
-
     if (questionData == null) {
       return Scaffold(
         appBar: AppBar(title: Text('${widget.bodyPart.displayName} 진단')),
@@ -102,7 +110,8 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            Text(questionData['question'], style: const TextStyle(fontSize: 16)),
+            Text(questionData['question'],
+                style: const TextStyle(fontSize: 16)),
             const SizedBox(height: 24),
             ...(questionData['options'] as List).map((option) {
               return Padding(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/storage_keys.dart';
+import 'core/theme/app_theme.dart';
 import 'screens/intro_screen.dart';
 import 'screens/paywall_screen.dart';
 
@@ -47,6 +48,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      theme: AppTheme.light(),
       routes: {
         '/paywall': (_) => const PaywallScreen(),
       },

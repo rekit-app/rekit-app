@@ -6,6 +6,8 @@ import '../core/config/stage_config.dart';
 import '../features/diagnosis/data/programs.dart';
 import '../core/utils/storage_helper.dart';
 import '../core/storage_keys.dart';
+import '../core/ui/soft_card.dart';
+import '../core/theme/color_scheme.dart';
 import 'program_screen.dart';
 import 'stage_complete_screen.dart';
 import 'intro_screen.dart';
@@ -84,51 +86,65 @@ class _HomeScreenState extends State<HomeScreen> {
     final progress = getStageProgress(day, maxDays);
     final todayProgram = programs[diagnosisCode]?[stage] ?? <String>[];
 
-    return LayoutBuilder(
-      builder: (ctx, constraints) {
-        return SingleChildScrollView(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _HeroSection(),
+          Padding(
+            padding: const EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ProgressSection(
-                  stage: stage,
-                  day: day,
-                  maxDays: maxDays,
-                  progress: progress,
+                SoftCard(
+                  child: ProgressSection(
+                    stage: stage,
+                    day: day,
+                    maxDays: maxDays,
+                    progress: progress,
+                  ),
                 ),
                 const SizedBox(height: 24),
+                const _ActionGrid(),
+                const SizedBox(height: 24),
                 TodayProgramList(program: todayProgram),
+                const SizedBox(height: 24),
                 if (todayProgram.isNotEmpty) _BottomCTA(onTap: _handleContinue),
               ],
             ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 
   Widget _buildPaidHome() {
     final todayProgram = programs[diagnosisCode]?[stage] ?? <String>[];
 
-    return LayoutBuilder(
-      builder: (ctx, constraints) {
-        return SingleChildScrollView(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _HeroSection(),
+          Padding(
+            padding: const EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Day $day', style: context.textTheme.titleLarge),
+                SoftCard(
+                  child: Text('Day $day', style: context.textTheme.titleLarge),
+                ),
+                const SizedBox(height: 24),
+                const _ActionGrid(),
                 const SizedBox(height: 24),
                 TodayProgramList(program: todayProgram),
+                const SizedBox(height: 24),
                 if (todayProgram.isNotEmpty) _BottomCTA(onTap: _handleContinue),
               ],
             ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 
@@ -154,9 +170,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pushAndRemoveUntil(
+                    Navigator.push(
+                      context,
                       MaterialPageRoute(builder: (_) => const IntroScreen()),
-                      (_) => false,
                     );
                   },
                   child: Text(
@@ -180,9 +196,9 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () async {
               await resetDiagnosis();
               if (context.mounted) {
-                Navigator.of(context).pushAndRemoveUntil(
+                Navigator.push(
+                  context,
                   MaterialPageRoute(builder: (_) => const IntroScreen()),
-                  (_) => false,
                 );
               }
             },
@@ -190,11 +206,125 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: _buildBody(),
+        child: _buildBody(),
+      ),
+    );
+  }
+}
+
+// ─── _HeroSection ───────────────────────────────────────────
+
+class _HeroSection extends StatelessWidget {
+  const _HeroSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      bottom: false,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              mintPrimary.withValues(alpha: 0.05),
+              surfaceSoft,
+            ],
+          ),
+          borderRadius: const BorderRadius.only(
+            bottomLeft: Radius.circular(32),
+            bottomRight: Radius.circular(32),
+          ),
+        ),
+        padding: const EdgeInsets.fromLTRB(24, 60, 24, 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Rekit',
+              style: Theme.of(context).textTheme.headlineLarge,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '오늘의 회복 상태',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ],
         ),
       ),
+    );
+  }
+}
+
+// ─── _ActionGrid ────────────────────────────────────────────
+
+class _ActionGrid extends StatelessWidget {
+  const _ActionGrid();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: SoftCard(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                Icon(
+                  Icons.fitness_center,
+                  size: 32,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '오늘의 운동',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: SoftCard(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                Icon(
+                  Icons.history,
+                  size: 32,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '운동 기록',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: SoftCard(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                Icon(
+                  Icons.list,
+                  size: 32,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '내 루틴',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -225,11 +355,11 @@ class ProgressSection extends StatelessWidget {
           children: [
             Text(
               'Stage $stage',
-              style: context.textTheme.titleLarge,
+              style: Theme.of(context).textTheme.titleLarge,
             ),
             Text(
               'Day $day / $maxDays',
-              style: context.textTheme.bodyMedium,
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],
         ),
@@ -261,7 +391,7 @@ class TodayProgramList extends StatelessWidget {
     if (program.isEmpty) {
       return Text(
         '진행 중인 프로그램이 없습니다.',
-        style: context.textTheme.bodyMedium,
+        style: Theme.of(context).textTheme.bodyMedium,
       );
     }
 
@@ -270,25 +400,25 @@ class TodayProgramList extends StatelessWidget {
       children: [
         Text(
           '오늘의 운동',
-          style: context.textTheme.titleMedium,
+          style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 16),
         ...program.map((exercise) {
           return Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    const Icon(Icons.fitness_center),
-                    const SizedBox(width: 12),
-                    Text(
-                      exercise,
-                      style: context.textTheme.bodyMedium,
-                    ),
-                  ],
-                ),
+            child: SoftCard(
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.fitness_center,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    exercise,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ],
               ),
             ),
           );
@@ -314,8 +444,8 @@ class _BottomCTA extends StatelessWidget {
       child: ElevatedButton(
         onPressed: onTap,
         child: Text(
-          '계속하기',
-          style: context.textTheme.titleMedium,
+          '맞춤 운동 시작하기',
+          style: Theme.of(context).textTheme.titleMedium,
         ),
       ),
     );
