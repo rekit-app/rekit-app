@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../core/extensions/context_theme.dart';
 import '../core/storage_keys.dart';
 import '../core/config/stage_config.dart';
 import '../core/utils/progress_helper.dart';
@@ -140,31 +139,29 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Greeting Header
-                const _GreetingHeader(),
-                const SizedBox(height: 16),
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Greeting Header
+              const _GreetingHeader(),
+              const SizedBox(height: 24),
 
-                // Today Program Hero Card
-                TodayProgramHeroCard(
-                  programTitle: '어깨 가동성 운동 프로그램',
-                  stage: stage,
-                  day: day,
-                  maxDays: maxDays,
-                  exerciseCount: routine.length,
-                  progress: progress,
-                  onTap: _handleHeroCardTap,
-                ),
-                const SizedBox(height: 32),
+              // Today Program Hero Card
+              TodayProgramHeroCard(
+                programTitle: '어깨 가동성 운동 프로그램',
+                stage: stage,
+                day: day,
+                maxDays: maxDays,
+                exerciseCount: routine.length,
+                progress: progress,
+                onTap: _handleHeroCardTap,
+              ),
+              const SizedBox(height: 32),
 
-                // Future sections...
-                // Community, Tips, etc.
-              ],
-            ),
+              // Discovery Section
+              const _DiscoverySection(),
+            ],
           ),
         ),
       ),
@@ -179,18 +176,39 @@ class _GreetingHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    final colors = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
+
+    return Row(
       children: [
-        Text(
-          '안녕하세요, 찬수님! 👋', // TODO: Phase2 - user profile name
-          style: context.headlineMedium,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '안녕하세요, 찬수님',
+                style: text.headlineMedium,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '오늘도 꾸준한 회복을 응원합니다',
+                style: text.bodyMedium?.copyWith(
+                  color: colors.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 8),
-        Text(
-          '오늘도 꾸준한 회복을 응원합니다',
-          style: context.bodyLarge.copyWith(
-            color: context.colorScheme.onSurface.withValues(alpha: 0.7),
+        Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: colors.primaryContainer,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Icon(
+            Icons.person_outline_rounded,
+            color: colors.primary,
           ),
         ),
       ],
@@ -222,6 +240,8 @@ class TodayProgramHeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
     final progressPercent = (progress * 100).toInt();
 
     return GestureDetector(
@@ -229,120 +249,95 @@ class TodayProgramHeroCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
+          color: colors.surface,
           borderRadius: BorderRadius.circular(24),
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF1D3557),
-              Color(0xFF457B9D),
-            ],
-          ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF1D3557).withValues(alpha: 0.3),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
+              color: colors.shadow,
+              blurRadius: 24,
+              offset: const Offset(0, 8),
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top row: Stage badge + exercise count
+            // Top row: icon + stage badge
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
+                    color: colors.primaryContainer,
+                    borderRadius: BorderRadius.circular(14),
                   ),
-                  child: Text(
-                    'Stage $stage',
-                    style: context.bodySmall.copyWith(
-                      color: Colors.white.withValues(alpha: 0.9),
-                      fontWeight: FontWeight.w600,
-                    ),
+                  child: Icon(
+                    Icons.fitness_center_rounded,
+                    color: colors.primary,
                   ),
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  '$exerciseCount개 운동',
-                  style: context.bodySmall.copyWith(
-                    color: Colors.white.withValues(alpha: 0.6),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        programTitle,
+                        style: text.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Stage $stage · Day $day / $maxDays · $exerciseCount개 운동',
+                        style: text.bodySmall?.copyWith(
+                          color: colors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
+            ),
+
+            const SizedBox(height: 20),
+
+            // Progress bar
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 6,
+                backgroundColor: colors.outlineVariant,
+                valueColor: AlwaysStoppedAnimation(colors.primary),
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            // Progress label
+            Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                '$progressPercent% 완료',
+                style: text.labelSmall?.copyWith(
+                  color: colors.onSurfaceVariant,
+                ),
+              ),
             ),
 
             const SizedBox(height: 16),
 
-            // Program title
-            Text(
-              programTitle,
-              style: context.titleLarge.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-
-            const SizedBox(height: 4),
-
-            // Day info
-            Text(
-              'Day $day / $maxDays',
-              style: context.bodyMedium.copyWith(
-                color: Colors.white.withValues(alpha: 0.7),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Progress bar with percentage
-            Row(
-              children: [
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: progress,
-                      minHeight: 6,
-                      backgroundColor: Colors.white.withValues(alpha: 0.15),
-                      valueColor:
-                          const AlwaysStoppedAnimation(Color(0xFF6EE7B7)),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  '$progressPercent%',
-                  style: context.bodySmall.copyWith(
-                    color: Colors.white.withValues(alpha: 0.8),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 20),
-
             // CTA button
-            Container(
+            SizedBox(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Center(
+              child: ElevatedButton(
+                onPressed: onTap,
                 child: Text(
                   '오늘 운동 시작하기',
-                  style: context.titleMedium.copyWith(
-                    color: const Color(0xFF1D3557),
+                  style: text.titleMedium?.copyWith(
+                    color: colors.onPrimary,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -350,6 +345,128 @@ class TodayProgramHeroCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ─── _DiscoverySection ──────────────────────────────────────
+
+class _DiscoverySection extends StatelessWidget {
+  const _DiscoverySection();
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final colors = Theme.of(context).colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '더 알아보기',
+          style: text.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _DiscoveryCard(
+                icon: Icons.history_rounded,
+                iconColor: colors.tertiary,
+                iconBgColor: colors.tertiaryContainer,
+                label: '운동 기록',
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _DiscoveryCard(
+                icon: Icons.auto_graph_rounded,
+                iconColor: colors.secondary,
+                iconBgColor: colors.secondaryContainer,
+                label: '회복 통계',
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _DiscoveryCard(
+                icon: Icons.menu_book_rounded,
+                iconColor: colors.primary,
+                iconBgColor: colors.primaryContainer,
+                label: '재활 가이드',
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _DiscoveryCard(
+                icon: Icons.settings_rounded,
+                iconColor: colors.onSurfaceVariant,
+                iconBgColor: colors.surfaceContainerHighest,
+                label: '설정',
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+// ─── _DiscoveryCard ─────────────────────────────────────────
+
+class _DiscoveryCard extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final Color iconBgColor;
+  final String label;
+
+  const _DiscoveryCard({
+    required this.icon,
+    required this.iconColor,
+    required this.iconBgColor,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: colors.shadow,
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: iconBgColor,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, color: iconColor, size: 22),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            label,
+            style: text.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+          ),
+        ],
       ),
     );
   }
