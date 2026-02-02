@@ -1,37 +1,51 @@
 import 'package:flutter/material.dart';
+import 'color_scheme.dart';
+import 'text_theme.dart';
 
 class AppTheme {
-  static const Color mintPrimary = Color(0xFF10B981);
-  static const Color mintSoft = Color(0xFFD1FAE5);
-  static const Color surfaceSoft = Color(0xFFF9FAFB);
-  static const Color textPrimary = Color(0xFF111827);
-
   static ThemeData light() {
     return ThemeData(
       brightness: Brightness.light,
       useMaterial3: true,
-      colorScheme: const ColorScheme.light(
-        primary: mintPrimary,
-        secondary: mintSoft,
-        surface: surfaceSoft,
-        onPrimary: Color(0xFFFFFFFF),
-        onSurface: textPrimary,
-      ),
-      scaffoldBackgroundColor: surfaceSoft,
-      cardTheme: const CardThemeData(
+      colorScheme: appColorScheme,
+      textTheme: appTextTheme,
+      scaffoldBackgroundColor: scaffoldBackground,
+      cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(20)),
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: appColorScheme.outlineVariant, width: 0.5),
         ),
-        color: surfaceSoft,
+        color: appColorScheme.surface,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          shape: const StadiumBorder(),
-          minimumSize: const Size.fromHeight(54),
-          backgroundColor: mintPrimary,
-          foregroundColor: const Color(0xFFFFFFFF), // ✅ 추가: 텍스트 색상 명시
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          minimumSize: const Size.fromHeight(52),
+          backgroundColor: appColorScheme.primary,
+          foregroundColor: appColorScheme.onPrimary,
+          elevation: 0,
         ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: appColorScheme.primary,
+        ),
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: scaffoldBackground,
+        foregroundColor: appColorScheme.onSurface,
+        elevation: 0,
+        scrolledUnderElevation: 0.5,
+      ),
+      dividerTheme: DividerThemeData(
+        color: appColorScheme.outlineVariant,
+        thickness: 0.5,
+      ),
+      iconTheme: IconThemeData(
+        color: appColorScheme.onSurfaceVariant,
       ),
     );
   }
