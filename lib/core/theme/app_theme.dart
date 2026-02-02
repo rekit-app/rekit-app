@@ -11,10 +11,10 @@ class AppTheme {
       textTheme: appTextTheme,
       scaffoldBackgroundColor: scaffoldBackground,
       cardTheme: CardThemeData(
-        elevation: 0,
+        elevation: 2,
+        shadowColor: appColorScheme.shadow,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: appColorScheme.outlineVariant, width: 0.5),
+          borderRadius: BorderRadius.circular(24),
         ),
         color: appColorScheme.surface,
       ),
