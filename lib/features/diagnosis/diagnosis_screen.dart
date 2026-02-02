@@ -83,49 +83,156 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
+
     if (questions.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: Text('${widget.bodyPart.displayName} 진단')),
-        body: Center(child: Text('${widget.bodyPart.displayName} 진단 준비 중입니다.')),
+        body: Center(
+          child: Text('${widget.bodyPart.displayName} 진단 준비 중입니다.'),
+        ),
       );
     }
 
     final questionData = questions[currentQuestion];
     if (questionData == null) {
       return Scaffold(
-        appBar: AppBar(title: Text('${widget.bodyPart.displayName} 진단')),
-        body: Center(child: Text('질문을 찾을 수 없습니다: $currentQuestion')),
+        body: Center(
+          child: Text('질문을 찾을 수 없습니다: $currentQuestion'),
+        ),
       );
     }
 
+    final options = questionData['options'] as List;
+
     return Scaffold(
-      appBar: AppBar(title: Text('${widget.bodyPart.displayName} 진단')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
+      body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              questionData['title'],
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16),
-            Text(questionData['question'],
-                style: Theme.of(context).textTheme.bodyLarge),
-            const SizedBox(height: 24),
-            ...(questionData['options'] as List).map((option) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => _handleAnswer(option['next']),
-                    child: Text(option['text']),
-                  ),
+            // Close / back button
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 8, top: 8),
+                child: IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close_rounded),
                 ),
-              );
-            }),
+              ),
+            ),
+
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    const Spacer(flex: 1),
+
+                    // Hero illustration
+                    Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: colors.primaryContainer,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.help_outline_rounded,
+                        size: 48,
+                        color: colors.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Step title (small label)
+                    Text(
+                      questionData['title'] as String,
+                      style: text.labelLarge?.copyWith(
+                        color: colors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Question text (large, bold)
+                    Text(
+                      questionData['question'] as String,
+                      style: text.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        height: 1.4,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+
+                    const Spacer(flex: 2),
+
+                    // Answer cards
+                    ...options.map((option) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _AnswerCard(
+                          label: option['text'] as String,
+                          onTap: () => _handleAnswer(option['next'] as String),
+                        ),
+                      );
+                    }),
+
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
+            ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── _AnswerCard ────────────────────────────────────────────
+
+class _AnswerCard extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _AnswerCard({
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 24),
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: colors.outlineVariant,
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: colors.shadow,
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: text.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
       ),
     );
