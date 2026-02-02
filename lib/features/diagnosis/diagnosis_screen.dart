@@ -107,11 +107,11 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
           children: [
             Text(
               questionData['title'],
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 16),
             Text(questionData['question'],
-                style: const TextStyle(fontSize: 16)),
+                style: Theme.of(context).textTheme.bodyLarge),
             const SizedBox(height: 24),
             ...(questionData['options'] as List).map((option) {
               return Padding(

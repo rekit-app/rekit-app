@@ -13,12 +13,12 @@ class ShoulderRedFlagScreen extends StatelessWidget {
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFFFEE2E2), Color(0xFFFFFFFF)],
-            stops: [0.0, 0.3],
+            colors: [colorScheme.errorContainer, colorScheme.surface],
+            stops: const [0.0, 0.3],
           ),
         ),
         child: SafeArea(
@@ -54,7 +54,7 @@ class ShoulderRedFlagScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFEE2E2),
+                          color: colorScheme.errorContainer,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: colorScheme.error,
@@ -120,7 +120,7 @@ class ShoulderRedFlagScreen extends StatelessWidget {
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: colorScheme.primary,
-                          foregroundColor: Colors.white,
+                          foregroundColor: colorScheme.onPrimary,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
@@ -130,7 +130,7 @@ class ShoulderRedFlagScreen extends StatelessWidget {
                           '해당 사항 없음, 시작하기',
                           style: textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                            color: colorScheme.onPrimary,
                           ),
                         ),
                       ),
@@ -191,7 +191,7 @@ class ShoulderRedFlagScreen extends StatelessWidget {
               color: colorScheme.error,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(Icons.warning, color: Colors.white, size: 20),
+            child: Icon(Icons.warning, color: colorScheme.onError, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
