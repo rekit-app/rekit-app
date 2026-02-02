@@ -4,7 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'core/storage_keys.dart';
 import 'core/theme/app_theme.dart';
 import 'screens/intro_screen.dart';
-import 'screens/paywall_screen.dart';
 
 Future<void> _migrateLegacyKeys(SharedPreferences prefs) async {
   if (prefs.containsKey(StorageKeys.legacyDiagnosisCode)) {
@@ -49,9 +48,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
-      routes: {
-        '/paywall': (_) => const PaywallScreen(),
-      },
       home: const IntroScreen(),
     );
   }

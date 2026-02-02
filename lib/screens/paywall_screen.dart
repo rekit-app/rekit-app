@@ -1,78 +1,71 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../core/extensions/context_theme.dart';
-import '../core/config/demo_mode.dart';
-import '../core/storage_keys.dart';
 import 'program_screen.dart';
 
-class PaywallScreen extends StatefulWidget {
-  const PaywallScreen({super.key});
+class PaywallScreen extends StatelessWidget {
+  final String diagnosisCode;
 
-  @override
-  State<PaywallScreen> createState() => _PaywallScreenState();
-}
+  const PaywallScreen({
+    super.key,
+    required this.diagnosisCode,
+  });
 
-class _PaywallScreenState extends State<PaywallScreen> {
-  Future<void> _onPurchase() async {
-    if (allowDemoPaywallBypass()) {
-      if (!mounted) return;
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const ProgramScreen()),
-      );
-      return;
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(StorageKeys.stage, 2);
-    await prefs.setInt(StorageKeys.day, 1);
-
-    if (!mounted) return;
-    Navigator.push(
+  Future<void> _unlockStage2(BuildContext context) async {
+    // Stage 2, Day 1로 ProgramScreen 진입
+    await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const ProgramScreen()),
+      MaterialPageRoute(
+        builder: (_) => ProgramScreen(
+          diagnosisCode: diagnosisCode,
+          day: 1,
+          stage: 2,
+        ),
+      ),
     );
+
+    if (!context.mounted) return;
+
+    // Paywall 닫기
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('심화 프로그램')),
+      appBar: AppBar(
+        title: const Text('Stage 2 잠금 해제'),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              '심화 프로그램 시작',
-              style: context.textTheme.titleMedium,
+            const Icon(
+              Icons.lock_outline,
+              size: 80,
+              color: Colors.grey,
             ),
             const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _onPurchase,
-                child: Text(
-                  '지금 시작하기',
-                  style: context.textTheme.titleMedium,
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(
-                  '나중에',
-                  style: context.textTheme.bodyMedium,
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
             Text(
-              '본 버전은 기기 내 저장 방식을 사용하며, 앱 삭제 시 진행 데이터가 초기화될 수 있습니다.',
-              style: context.textTheme.bodySmall,
+              'Stage 2: 근력 강화',
+              style: Theme.of(context).textTheme.headlineMedium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Stage 1을 완료하셨습니다!\n더 강력한 근력 강화 프로그램을 시작하세요.',
+              style: Theme.of(context).textTheme.bodyLarge,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 48),
+            ElevatedButton(
+              onPressed: () => _unlockStage2(context),
+              child: const Text('Stage 2 시작하기'),
+            ),
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('나중에 하기'),
             ),
           ],
         ),

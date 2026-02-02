@@ -1,165 +1,323 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../core/extensions/context_theme.dart';
-import '../core/storage_keys.dart';
-import '../core/config/stage_config.dart';
 import '../core/utils/storage_helper.dart';
 import '../features/diagnosis/data/programs.dart';
+import '../core/ui/soft_card.dart';
 
 class ProgramScreen extends StatefulWidget {
-  const ProgramScreen({super.key});
+  final String diagnosisCode;
+  final int day;
+  final int stage;
+
+  const ProgramScreen({
+    super.key,
+    required this.diagnosisCode,
+    required this.day,
+    required this.stage,
+  });
 
   @override
   State<ProgramScreen> createState() => _ProgramScreenState();
 }
 
 class _ProgramScreenState extends State<ProgramScreen> {
-  String diagnosisCode = '';
-  int day = 1;
-  int stage = 1;
-  bool isLoading = true;
-  bool isCompleted = false;
+  late String diagnosisCode;
+  late int day;
+  late int stage;
+
+  int currentIndex = 0;
+  late PageController _pageController;
 
   @override
   void initState() {
     super.initState();
-    _loadData();
+    _pageController = PageController(initialPage: 0);
+
+    // widget에서 값 가져오기 (prefs 접근 금지)
+    diagnosisCode = widget.diagnosisCode;
+    day = widget.day;
+    stage = widget.stage;
   }
 
-  Future<void> _loadData() async {
-    final data = await _readProgramState();
-
-    setState(() {
-      diagnosisCode = data.$1;
-      day = data.$2;
-      stage = data.$3;
-      isLoading = false;
-    });
-  }
-
-  Future<(String, int, int)> _readProgramState() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    return (
-      prefs.getString(StorageKeys.diagnosisCode) ?? '',
-      prefs.getInt(StorageKeys.day) ?? 1,
-      prefs.getInt(StorageKeys.stage) ?? 1,
-    );
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   Future<void> _completeDay() async {
     if (diagnosisCode.isEmpty) return;
 
+    // ProgramScreen 책임: day +1만 수행
     await advanceDay(increment: 1);
+
     if (!mounted) return;
 
-    if (stage == 1) {
-      final maxDays = getStage1Days(diagnosisCode);
-      if (day >= maxDays) {
-        Navigator.pop(context, true);
-        return;
-      }
-    }
-
+    // Stage 완료 판단은 HomeScreen에서 처리
     Navigator.pop(context);
   }
 
-  Future<void> _onCompleteTap() async {
-    setState(() => isCompleted = true);
-    await Future.delayed(const Duration(milliseconds: 800));
-    if (!mounted) return;
-    await _completeDay();
+  void _onPrevious() {
+    if (currentIndex > 0) {
+      _pageController.previousPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  void _onNext() {
+    final routine = programs[diagnosisCode]?[stage] ?? [];
+    if (currentIndex < routine.length - 1) {
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    final routine = programs[diagnosisCode]?[stage] ?? [];
+
+    if (routine.isEmpty) {
+      return const Scaffold(
+        body: Center(child: Text('프로그램을 불러올 수 없습니다')),
+      );
     }
 
-    final todayProgram = programs[diagnosisCode]?[stage] ?? <String>[];
-
     return Scaffold(
-      appBar: AppBar(title: const Text('오늘의 운동')),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(24),
-              itemCount: todayProgram.length,
-              itemBuilder: (ctx, i) => _ExerciseItem(title: todayProgram[i]),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Progress Bar
+            LinearProgressIndicator(
+              value: (currentIndex + 1) / routine.length,
+              minHeight: 4,
+              backgroundColor: context.colorScheme.surface,
             ),
-          ),
-          _BottomSection(isCompleted: isCompleted, onTap: _onCompleteTap),
-        ],
-      ),
-    );
-  }
-}
 
-// ─── _ExerciseItem ──────────────────────────────────────────
+            // Top Bar
+            _TopBar(day: day),
 
-class _ExerciseItem extends StatelessWidget {
-  final String title;
+            // PageView
+            Expanded(
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: routine.length,
+                onPageChanged: (index) {
+                  setState(() {
+                    currentIndex = index;
+                  });
+                },
+                itemBuilder: (context, index) {
+                  return _ExercisePage(
+                    exercise: routine[index],
+                    currentIndex: index,
+                    totalCount: routine.length,
+                  );
+                },
+              ),
+            ),
 
-  const _ExerciseItem({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              const Icon(Icons.fitness_center),
-              const SizedBox(width: 12),
-              Text(title, style: context.textTheme.bodyMedium),
-            ],
-          ),
+            // Bottom Navigation
+            _BottomNavigation(
+              currentIndex: currentIndex,
+              totalCount: routine.length,
+              onPrevious: _onPrevious,
+              onNext: _onNext,
+              onComplete: _completeDay,
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-// ─── _BottomSection ─────────────────────────────────────────
+// ─── _TopBar ────────────────────────────────────────────────
 
-class _BottomSection extends StatelessWidget {
-  final bool isCompleted;
-  final VoidCallback onTap;
+class _TopBar extends StatelessWidget {
+  final int day;
 
-  const _BottomSection({required this.isCompleted, required this.onTap});
+  const _TopBar({required this.day});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      child: Stack(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      child: Row(
         children: [
-          AnimatedOpacity(
-            opacity: isCompleted ? 0.0 : 1.0,
-            duration: const Duration(milliseconds: 200),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: isCompleted ? null : onTap,
-                child: Text('오늘 운동 완료', style: context.textTheme.titleMedium),
+          IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.pop(context),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'Day $day',
+            style: context.textTheme.titleMedium,
+          ),
+          const Spacer(),
+          IconButton(
+            icon: const Icon(Icons.info_outline),
+            onPressed: () {}, // empty
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── _ExercisePage ──────────────────────────────────────────
+
+class _ExercisePage extends StatelessWidget {
+  final String exercise;
+  final int currentIndex;
+  final int totalCount;
+
+  const _ExercisePage({
+    required this.exercise,
+    required this.currentIndex,
+    required this.totalCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 16),
+
+          // 운동 이름
+          Text(
+            exercise,
+            style: context.textTheme.headlineMedium,
+          ),
+          const SizedBox(height: 12),
+
+          // 설명 (placeholder)
+          Text(
+            '어깨 근육을 부드럽게 이완합니다',
+            style: context.textTheme.bodyLarge?.copyWith(
+              color: context.colorScheme.onSurface.withValues(alpha: 0.7),
+            ),
+          ),
+          const SizedBox(height: 32),
+
+          // Video Placeholder
+          SoftCard(
+            child: AspectRatio(
+              aspectRatio: 16 / 9,
+              child: Container(
+                color: context.colorScheme.surface,
+                child: Center(
+                  child: Icon(
+                    Icons.play_circle_outline,
+                    size: 64,
+                    color: context.colorScheme.primary,
+                  ),
+                ),
               ),
             ),
           ),
-          if (isCompleted)
-            const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.check_circle_outline, size: 48),
-                  SizedBox(height: 12),
-                  Text('오늘 운동 완료!'),
-                ],
+          const SizedBox(height: 32),
+
+          // Page Indicator
+          Center(
+            child: _PageIndicator(
+              currentIndex: currentIndex,
+              totalCount: totalCount,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── _PageIndicator ─────────────────────────────────────────
+
+class _PageIndicator extends StatelessWidget {
+  final int currentIndex;
+  final int totalCount;
+
+  const _PageIndicator({
+    required this.currentIndex,
+    required this.totalCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(totalCount, (index) {
+        final isActive = index == currentIndex;
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isActive
+                ? context.colorScheme.primary
+                : context.colorScheme.outlineVariant,
+          ),
+        );
+      }),
+    );
+  }
+}
+
+// ─── _BottomNavigation ──────────────────────────────────────
+
+class _BottomNavigation extends StatelessWidget {
+  final int currentIndex;
+  final int totalCount;
+  final VoidCallback onPrevious;
+  final VoidCallback onNext;
+  final VoidCallback onComplete;
+
+  const _BottomNavigation({
+    required this.currentIndex,
+    required this.totalCount,
+    required this.onPrevious,
+    required this.onNext,
+    required this.onComplete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isLastPage = currentIndex == totalCount - 1;
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        24,
+        24,
+        24,
+        24 + MediaQuery.of(context).padding.bottom,
+      ),
+      child: Row(
+        children: [
+          // 이전 버튼
+          IconButton(
+            icon: const Icon(Icons.chevron_left),
+            iconSize: 32,
+            onPressed: currentIndex > 0 ? onPrevious : null,
+          ),
+          const SizedBox(width: 16),
+
+          // 메인 CTA
+          Expanded(
+            child: ElevatedButton(
+              onPressed: isLastPage ? onComplete : onNext,
+              child: Text(
+                isLastPage ? '오늘 완료' : '다음 단계로',
+                style: context.textTheme.titleMedium,
               ),
             ),
+          ),
         ],
       ),
     );

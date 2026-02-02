@@ -30,6 +30,7 @@ class AppTheme {
           shape: const StadiumBorder(),
           minimumSize: const Size.fromHeight(54),
           backgroundColor: mintPrimary,
+          foregroundColor: const Color(0xFFFFFFFF), // ✅ 추가: 텍스트 색상 명시
         ),
       ),
     );
