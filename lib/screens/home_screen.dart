@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../core/extensions/context_theme.dart';
 import '../core/storage_keys.dart';
+import '../core/config/stage_config.dart';
 import '../features/diagnosis/data/programs.dart';
+import '../core/ui/soft_card.dart';
 import 'program_screen.dart';
-import 'paywall_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -44,11 +46,10 @@ class _HomeScreenState extends State<HomeScreen> {
     return (dx, d, s);
   }
 
-  Future<void> _startProgram() async {
+  Future<void> _handleContinue() async {
     final dx = diagnosisCode;
     if (dx == null || dx.isEmpty) return;
 
-    // ProgramScreen으로 이동 (diagnosisCode, day, stage 전달)
     await Navigator.push(
       context,
       MaterialPageRoute(
@@ -60,24 +61,15 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
 
-    // 돌아왔을 때 데이터 리로드
     _loadData();
   }
 
-  Future<void> _goToPaywall() async {
+  double _getProgress() {
     final dx = diagnosisCode;
-    if (dx == null || dx.isEmpty) return;
-
-    // PaywallScreen으로 이동 (diagnosisCode 전달)
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => PaywallScreen(diagnosisCode: dx),
-      ),
-    );
-
-    // 돌아왔을 때 데이터 리로드
-    _loadData();
+    if (dx == null) return 0.0;
+    final maxDays = getStage1Days(dx);
+    if (maxDays == 0) return 0.0;
+    return (day / maxDays).clamp(0.0, 1.0);
   }
 
   @override
@@ -110,52 +102,109 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Rekit'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
+      body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Stage $stage · Day $day',
-              style: Theme.of(context).textTheme.titleLarge,
+            // Progress Bar
+            LinearProgressIndicator(
+              value: _getProgress(),
+              minHeight: 4,
+              backgroundColor: context.colorScheme.surfaceVariant,
             ),
-            const SizedBox(height: 16),
-            Text(
-              '오늘의 운동',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 12),
+
             Expanded(
-              child: ListView.builder(
-                itemCount: routine.length,
-                itemBuilder: (ctx, idx) {
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    child: ListTile(
-                      leading: CircleAvatar(child: Text('${idx + 1}')),
-                      title: Text(routine[idx]),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Hero Section
+                    const SizedBox(height: 8),
+                    Text(
+                      '안녕하세요, 찬수님! 👋',
+                      style: context.headlineMedium,
                     ),
-                  );
-                },
+                    const SizedBox(height: 8),
+                    Text(
+                      '오늘은 어깨 가동성을 높여볼까요?',
+                      style: context.bodyLarge.copyWith(
+                        color: context.colorScheme.onSurface
+                            .withValues(alpha: 0.7),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '오늘의 프로그램 · Stage $stage',
+                      style: context.bodySmall.copyWith(
+                        color: context.colorScheme.onSurface
+                            .withValues(alpha: 0.5),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Exercise Cards
+                    ...routine.map((exercise) => Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: SoftCard(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.fitness_center,
+                                    color: context.colorScheme.primary,
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Text(
+                                      exercise,
+                                      style: context.bodyMedium,
+                                    ),
+                                  ),
+                                  Text(
+                                    '30초',
+                                    style: context.bodySmall.copyWith(
+                                      color: context.colorScheme.onSurface
+                                          .withValues(alpha: 0.5),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        )),
+                    const SizedBox(height: 24),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _startProgram,
-                child: const Text('시작하기'),
-              ),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              child: TextButton(
-                onPressed: _goToPaywall,
-                child: const Text('Stage 2로 가기 (테스트)'),
+
+            // Bottom CTA
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    '오늘의 예상 운동 시간: 5분',
+                    style: context.bodySmall.copyWith(
+                      color:
+                          context.colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: _handleContinue,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: const Text('오늘의 운동 시작하기'),
+                  ),
+                ],
               ),
             ),
           ],
