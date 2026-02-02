@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/extensions/context_theme.dart';
 import 'login_screen.dart';
 
 class IntroScreen extends StatefulWidget {
@@ -20,10 +21,6 @@ class _IntroScreenState extends State<IntroScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    final colorScheme = theme.colorScheme;
-
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -36,10 +33,11 @@ class _IntroScreenState extends State<IntroScreen> {
                     _currentPage = index;
                   });
                 },
-                children: [
-                  _buildPage(context, 'Rekit', '통증의 원인을 진단하고'),
-                  _buildPage(context, '맞춤 운동 처방', '당신의 상태에 맞는 재활 프로그램'),
-                  _buildPage(context, '재발 방지', '근력까지 책임지는 회복 시스템'),
+                children: const [
+                  _IntroPage(title: 'Rekit', description: '통증의 원인을 진단하고'),
+                  _IntroPage(
+                      title: '맞춤 운동 처방', description: '당신의 상태에 맞는 재활 프로그램'),
+                  _IntroPage(title: '재발 방지', description: '근력까지 책임지는 회복 시스템'),
                 ],
               ),
             ),
@@ -57,8 +55,8 @@ class _IntroScreenState extends State<IntroScreen> {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: _currentPage == index
-                              ? colorScheme.primary
-                              : colorScheme.outlineVariant,
+                              ? context.colorScheme.primary
+                              : context.colorScheme.outlineVariant,
                         ),
                       );
                     }),
@@ -69,18 +67,15 @@ class _IntroScreenState extends State<IntroScreen> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () {
-                          Navigator.pushReplacement(
+                          Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => const LoginScreen(),
-                            ),
+                                builder: (_) => const LoginScreen()),
                           );
                         },
                         child: Text(
                           '시작하기',
-                          style: textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: context.textTheme.titleMedium,
                         ),
                       ),
                     ),
@@ -92,11 +87,19 @@ class _IntroScreenState extends State<IntroScreen> {
       ),
     );
   }
+}
 
-  Widget _buildPage(BuildContext context, String title, String description) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
+class _IntroPage extends StatelessWidget {
+  final String title;
+  final String description;
 
+  const _IntroPage({
+    required this.title,
+    required this.description,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -105,15 +108,13 @@ class _IntroScreenState extends State<IntroScreen> {
           children: [
             Text(
               title,
-              style: textTheme.displaySmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: context.textTheme.displaySmall,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
             Text(
               description,
-              style: textTheme.titleLarge,
+              style: context.textTheme.titleLarge,
               textAlign: TextAlign.center,
             ),
           ],
