@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/storage_keys.dart';
 import '../core/config/stage_config.dart';
-import 'home_screen.dart';
+import 'root_screen.dart';
 
 class ResultScreen extends StatelessWidget {
   const ResultScreen({super.key});
@@ -36,7 +36,7 @@ class ResultScreen extends StatelessWidget {
                     onPressed: () {
                       Navigator.pushAndRemoveUntil(
                         ctx,
-                        MaterialPageRoute(builder: (_) => const HomeScreen()),
+                        MaterialPageRoute(builder: (_) => const RootScreen()),
                         (_) => false,
                       );
                     },

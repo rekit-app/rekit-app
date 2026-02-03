@@ -57,7 +57,7 @@ class _DiagnosisSelectScreenState extends State<DiagnosisSelectScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF00D09E), Color(0xFF00A881)],
+            colors: [Color(0xFF4DD9BB), Color(0xFF4DC2A6)],
           ),
         ),
         child: SafeArea(
@@ -145,7 +145,7 @@ class _DiagnosisSelectScreenState extends State<DiagnosisSelectScreen> {
                               _selectedIndex != null ? _onConfirm : null,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white,
-                            foregroundColor: const Color(0xFF00D09E),
+                            foregroundColor: const Color(0xFF4DD9BB),
                             disabledBackgroundColor:
                                 Colors.white.withValues(alpha: 0.4),
                             disabledForegroundColor:
@@ -156,7 +156,7 @@ class _DiagnosisSelectScreenState extends State<DiagnosisSelectScreen> {
                             '다음',
                             style: text.titleMedium?.copyWith(
                               color: _selectedIndex != null
-                                  ? const Color(0xFF00D09E)
+                                  ? const Color(0xFF4DD9BB)
                                   : Colors.white.withValues(alpha: 0.6),
                               fontWeight: FontWeight.w700,
                             ),
@@ -223,7 +223,7 @@ class _SelectionCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
             color: isSelected
-                ? const Color(0xFF00D09E)
+                ? const Color(0xFF4DD9BB)
                 : Colors.transparent,
             width: isSelected ? 2.5 : 0,
           ),

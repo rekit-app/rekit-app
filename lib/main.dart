@@ -48,6 +48,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
+      darkTheme: AppTheme.light(),
+      themeMode: ThemeMode.light,
       home: const IntroScreen(),
     );
   }

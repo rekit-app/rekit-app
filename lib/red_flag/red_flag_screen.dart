@@ -43,7 +43,7 @@ class RedFlagScreen extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF00D09E), Color(0xFF00A881)],
+            colors: [Color(0xFF4DD9BB), Color(0xFF4DC2A6)],
           ),
         ),
         child: SafeArea(
@@ -133,22 +133,11 @@ class RedFlagScreen extends StatelessWidget {
                     _ActionCard(
                       icon: Icons.check_circle_outline_rounded,
                       label: confirmLabel,
-                      iconColor: const Color(0xFF00D09E),
+                      iconColor: const Color(0xFF4DD9BB),
                       borderColor: Colors.white,
                       backgroundColor: Colors.white,
-                      textColor: const Color(0xFF00D09E),
+                      textColor: const Color(0xFF4DD9BB),
                       onTap: onConfirm,
-                    ),
-                    const SizedBox(height: 12),
-                    // Danger — go back (outlined white)
-                    _ActionCard(
-                      icon: Icons.local_hospital_rounded,
-                      label: '해당 사항 있음, 병원 방문',
-                      iconColor: Colors.white,
-                      borderColor: Colors.white.withValues(alpha: 0.6),
-                      backgroundColor: Colors.transparent,
-                      textColor: Colors.white,
-                      onTap: () => Navigator.pop(context),
                     ),
                   ],
                 ),
