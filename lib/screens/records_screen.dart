@@ -4,6 +4,27 @@ import '../core/extensions/context_theme.dart';
 import '../core/storage_keys.dart';
 import '../core/ui/soft_card.dart';
 
+// ─── RecordEntry Model (UI only) ────────────────────────────
+
+class RecordEntry {
+  final DateTime date;
+  final int level; // 1–10
+
+  const RecordEntry({required this.date, required this.level});
+
+  String get emoji => _conditionEmoji(level);
+  String get label => _conditionLabel(level);
+
+  String relativeDay(DateTime today) {
+    final diff = today.difference(date).inDays;
+    if (diff == 0) return '오늘';
+    if (diff == 1) return '어제';
+    return '$diff일 전';
+  }
+}
+
+// ─── Helper Functions ───────────────────────────────────────
+
 /// Maps internal level (1–10) to user-facing qualitative label.
 String _conditionLabel(int level) {
   if (level <= 2) return '많이 힘들었어요';
@@ -24,23 +45,14 @@ String _conditionEmoji(int level) {
   return '😄';
 }
 
-/// Relative day label for journal display.
-String _relativeDay(String dateStr, String todayStr) {
-  final date = DateTime.tryParse(dateStr);
-  final today = DateTime.tryParse(todayStr);
-  if (date == null || today == null) return dateStr;
-
-  final diff = today.difference(date).inDays;
-  if (diff == 0) return '오늘';
-  if (diff == 1) return '어제';
-  return '$diff일 전';
+/// Format date range (e.g. "04.16. ~ 04.22.")
+String _formatDateRange(DateTime start, DateTime end) {
+  String fmt(DateTime d) =>
+      '${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')}.';
+  return '${fmt(start)} ~ ${fmt(end)}';
 }
 
-/// Today as yyyy-MM-dd.
-String _todayString() {
-  final now = DateTime.now();
-  return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-}
+// ─── Records Screen ─────────────────────────────────────────
 
 class RecordsScreen extends StatefulWidget {
   const RecordsScreen({super.key});
@@ -51,13 +63,16 @@ class RecordsScreen extends StatefulWidget {
 
 class _RecordsScreenState extends State<RecordsScreen> {
   bool _loading = true;
-  bool _hasRecordToday = false;
-  int? _todayLevel;
   bool _showInput = false;
-  int _selectedLevel = 5;
+  int _selectedTab = 0;
 
-  // Last 7 days records (date → level)
-  final List<MapEntry<String, int>> _recentRecords = [];
+  // Computed once in _loadRecords, not in build()
+  late DateTime _today;
+  late String _dateRangeText;
+
+  // Record state
+  RecordEntry? _todayRecord;
+  final List<RecordEntry> _recentRecords = [];
 
   @override
   void initState() {
@@ -66,19 +81,34 @@ class _RecordsScreenState extends State<RecordsScreen> {
   }
 
   Future<void> _loadRecords() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedDate = prefs.getString(StorageKeys.bodyConditionDate);
-    final savedLevel = prefs.getInt(StorageKeys.bodyConditionLevel);
-    final today = _todayString();
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final weekAgo = today.subtract(const Duration(days: 6));
 
-    final records = <MapEntry<String, int>>[];
-    if (savedDate != null && savedLevel != null) {
-      records.add(MapEntry(savedDate, savedLevel));
+    final prefs = await SharedPreferences.getInstance();
+    final savedDateStr = prefs.getString(StorageKeys.bodyConditionDate);
+    final savedLevel = prefs.getInt(StorageKeys.bodyConditionLevel);
+
+    final records = <RecordEntry>[];
+    RecordEntry? todayEntry;
+
+    if (savedDateStr != null && savedLevel != null) {
+      final savedDate = DateTime.tryParse(savedDateStr);
+      if (savedDate != null) {
+        final entry = RecordEntry(date: savedDate, level: savedLevel);
+        records.add(entry);
+
+        final savedDay = DateTime(savedDate.year, savedDate.month, savedDate.day);
+        if (savedDay == today) {
+          todayEntry = entry;
+        }
+      }
     }
 
     setState(() {
-      _hasRecordToday = savedDate == today;
-      _todayLevel = _hasRecordToday ? savedLevel : null;
+      _today = today;
+      _dateRangeText = _formatDateRange(weekAgo, today);
+      _todayRecord = todayEntry;
       _recentRecords
         ..clear()
         ..addAll(records);
@@ -88,26 +118,41 @@ class _RecordsScreenState extends State<RecordsScreen> {
 
   Future<void> _saveRecord(int level) async {
     final prefs = await SharedPreferences.getInstance();
-    final today = _todayString();
+    final dateStr =
+        '${_today.year}-${_today.month.toString().padLeft(2, '0')}-${_today.day.toString().padLeft(2, '0')}';
+
     await prefs.setInt(StorageKeys.bodyConditionLevel, level);
-    await prefs.setString(StorageKeys.bodyConditionDate, today);
+    await prefs.setString(StorageKeys.bodyConditionDate, dateStr);
+
+    final newEntry = RecordEntry(date: _today, level: level);
 
     setState(() {
-      _hasRecordToday = true;
-      _todayLevel = level;
+      _todayRecord = newEntry;
       _showInput = false;
 
-      // Update recent records
-      _recentRecords
-        ..removeWhere((e) => e.key == today)
-        ..insert(0, MapEntry(today, level));
+      _recentRecords.removeWhere(
+          (e) => e.date.year == _today.year &&
+                 e.date.month == _today.month &&
+                 e.date.day == _today.day);
+      _recentRecords.insert(0, newEntry);
     });
   }
 
   void _onStartInput() {
     setState(() {
       _showInput = true;
-      _selectedLevel = _todayLevel ?? 5;
+    });
+  }
+
+  void _onCloseInput() {
+    setState(() {
+      _showInput = false;
+    });
+  }
+
+  void _onTabChanged(int index) {
+    setState(() {
+      _selectedTab = index;
     });
   }
 
@@ -121,9 +166,9 @@ class _RecordsScreenState extends State<RecordsScreen> {
 
     if (_showInput) {
       return _ConditionInputView(
-        initialLevel: _selectedLevel,
+        initialLevel: _todayRecord?.level ?? 5,
         onSave: _saveRecord,
-        onBack: () => setState(() => _showInput = false),
+        onBack: _onCloseInput,
       );
     }
 
@@ -136,148 +181,406 @@ class _RecordsScreenState extends State<RecordsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 8),
+
+              // Header
               Text(
                 '기록',
                 style: context.headlineSmall.copyWith(
                   fontWeight: FontWeight.w800,
                 ),
               ),
+              const SizedBox(height: 20),
+
+              // Segmented toggle
+              _SegmentedToggle(
+                selectedIndex: _selectedTab,
+                onChanged: _onTabChanged,
+              ),
               const SizedBox(height: 24),
 
-              // Prompt card (only if no record today)
-              if (!_hasRecordToday)
-                SoftCard(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.edit_note_rounded,
-                        size: 40,
-                        color: context.colorScheme.primary,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        '오늘 몸 상태를\n기록해볼까요?',
-                        style: context.titleLarge.copyWith(
-                          fontWeight: FontWeight.w700,
-                          height: 1.4,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '하루 한 번, 간단하게 체크해요',
-                        style: context.bodyMedium.copyWith(
-                          color: context.colorScheme.onSurfaceVariant,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 20),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _onStartInput,
-                          child: const Text('오늘 상태 기록하기'),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              // Add record card (always visible)
+              _AddRecordCard(onTap: _onStartInput),
+              const SizedBox(height: 24),
 
-              if (!_hasRecordToday && _recentRecords.isNotEmpty)
-                const SizedBox(height: 24),
-
-              // Journal entries
-              if (_recentRecords.isNotEmpty) ...[
-                Text(
-                  '최근 기록',
-                  style: context.titleSmall.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: context.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                ..._recentRecords.map((entry) {
-                  final today = _todayString();
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: SoftCard(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 16,
-                      ),
-                      child: Row(
-                        children: [
-                          Text(
-                            _conditionEmoji(entry.value),
-                            style: const TextStyle(fontSize: 28),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _relativeDay(entry.key, today),
-                                  style: context.bodySmall.copyWith(
-                                    color: context.colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  _conditionLabel(entry.value),
-                                  style: context.titleSmall.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+              // Body state tab content
+              if (_selectedTab == 0) ...[
+                // Header row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '최근 7일',
+                      style: context.titleSmall.copyWith(
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                  );
-                }),
+                    Text(
+                      _dateRangeText,
+                      style: context.bodySmall.copyWith(
+                        color: context.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                // Records list or empty state
+                if (_recentRecords.isEmpty)
+                  const _EmptyStateCard()
+                else
+                  _RecordsList(records: _recentRecords, today: _today),
               ],
 
-              // Empty state
-              if (_recentRecords.isEmpty && _hasRecordToday == false) ...[
+              // Exercise tab (placeholder)
+              if (_selectedTab == 1) ...[
                 const SizedBox(height: 48),
                 Center(
                   child: Column(
                     children: [
                       Icon(
-                        Icons.menu_book_rounded,
+                        Icons.fitness_center_rounded,
                         size: 48,
                         color: context.colorScheme.onSurfaceVariant
                             .withValues(alpha: 0.3),
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        '아직 기록이 없어요',
+                        '운동 기록은 준비 중이에요',
                         style: context.titleSmall.copyWith(
                           fontWeight: FontWeight.w600,
                           color: context.colorScheme.onSurfaceVariant,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '필요할 때 가볍게 남겨보세요',
-                        style: context.bodySmall.copyWith(
-                          color: context.colorScheme.onSurfaceVariant
-                              .withValues(alpha: 0.7),
-                        ),
-                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),
                 ),
               ],
+
+              const SizedBox(height: 32),
+
+              // Premium teaser
+              const _PremiumTeaser(),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+// ─── Add Record Card ────────────────────────────────────────
+
+class _AddRecordCard extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _AddRecordCard({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return SoftCard(
+      onTap: onTap,
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: context.colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              Icons.add_circle_outline_rounded,
+              color: context.colorScheme.primary,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '오늘 몸 상태 기록하기',
+                  style: context.titleSmall.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '하루 한 번, 가볍게 남겨보세요',
+                  style: context.bodySmall.copyWith(
+                    color: context.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(
+            Icons.chevron_right_rounded,
+            color: context.colorScheme.onSurfaceVariant,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Segmented Toggle ───────────────────────────────────────
+
+class _SegmentedToggle extends StatelessWidget {
+  final int selectedIndex;
+  final ValueChanged<int> onChanged;
+
+  const _SegmentedToggle({
+    required this.selectedIndex,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: context.colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.all(4),
+      child: Row(
+        children: [
+          _ToggleButton(
+            label: '몸 상태',
+            isSelected: selectedIndex == 0,
+            onTap: () => onChanged(0),
+          ),
+          _ToggleButton(
+            label: '운동 기록',
+            isSelected: selectedIndex == 1,
+            onTap: () => onChanged(1),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ToggleButton extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _ToggleButton({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? context.colorScheme.surface
+                : context.colorScheme.surfaceContainerHigh,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: context.bodyMedium.copyWith(
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              color: isSelected
+                  ? context.colorScheme.onSurface
+                  : context.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Empty State Card ───────────────────────────────────────
+
+class _EmptyStateCard extends StatelessWidget {
+  const _EmptyStateCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return SoftCard(
+      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
+      child: Column(
+        children: [
+          const SizedBox(
+            height: 48,
+            child: FittedBox(child: Text('🌱')),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            '아직 기록이 없어요',
+            style: context.titleSmall.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '필요할 때 가볍게 남겨보세요',
+            style: context.bodySmall.copyWith(
+              color: context.colorScheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Records List ───────────────────────────────────────────
+
+class _RecordsList extends StatelessWidget {
+  final List<RecordEntry> records;
+  final DateTime today;
+
+  const _RecordsList({required this.records, required this.today});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '최근 몸 상태 기록',
+          style: context.bodySmall.copyWith(
+            fontWeight: FontWeight.w600,
+            color: context.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 12),
+        ...records.take(7).map((entry) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: SoftCard(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 60,
+                    child: Text(
+                      entry.relativeDay(today),
+                      style: context.bodySmall.copyWith(
+                        color: context.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 36,
+                    child: FittedBox(
+                      child: Text(entry.emoji),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      entry.label,
+                      style: context.titleSmall.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+}
+
+// ─── Premium Teaser ─────────────────────────────────────────
+
+class _PremiumTeaser extends StatelessWidget {
+  const _PremiumTeaser();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              '프리미엄 기능',
+              style: context.titleSmall.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: context.colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                'PREMIUM',
+                style: context.bodySmall.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: context.colorScheme.primary,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        SoftCard(
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: context.colorScheme.surfaceContainerHigh,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.insights_rounded,
+                  color: context.colorScheme.onSurfaceVariant,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '회복 흐름 인사이트',
+                      style: context.titleSmall.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '기록을 바탕으로 회복 흐름을 확인할 수 있어요.',
+                      style: context.bodySmall.copyWith(
+                        color: context.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -351,7 +654,7 @@ class _ConditionInputViewState extends State<_ConditionInputView> {
               ),
               const Spacer(flex: 2),
 
-              // Dynamic emoji — large (using Icon-sized container)
+              // Dynamic emoji — large
               SizedBox(
                 height: 80,
                 child: FittedBox(
