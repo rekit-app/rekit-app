@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../core/extensions/context_theme.dart';
-import '../core/storage_keys.dart';
 import '../core/ui/soft_card.dart';
 import '../core/utils/storage_helper.dart';
 import '../features/diagnosis/data/programs.dart';
@@ -29,27 +27,22 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadProgress() async {
-    final prefs = await SharedPreferences.getInstance();
-    final dx = prefs.getString(StorageKeys.diagnosisCode);
-    final d = prefs.getInt(StorageKeys.day) ?? 1;
-    final s = prefs.getInt(StorageKeys.stage) ?? 1;
-
+    final data = await loadProgress();
     if (!mounted) return;
 
     setState(() {
-      diagnosisCode = dx;
-      day = d;
-      stage = s;
+      diagnosisCode = data.diagnosisCode;
+      day = data.day;
+      stage = data.stage;
       isLoading = false;
     });
   }
 
-  void _navigateToProgram() async {
-    await Navigator.push(
+  void _navigateToProgram() {
+    Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const ProgramScreen()),
     );
-    _loadProgress();
   }
 
   void _navigateToPremium() {
@@ -175,7 +168,6 @@ class _PrimaryStretchCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SoftCard(
-      onTap: onTap,
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -245,34 +237,34 @@ class _SecondaryExerciseCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return SoftCard(
       onTap: onTap,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
         children: [
-          // Icon badge
+          // Icon badge (smaller)
           Container(
-            width: 44,
-            height: 44,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
               color: context.colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
               Icons.fitness_center_rounded,
               color: context.colorScheme.primary,
-              size: 22,
+              size: 18,
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
 
-          // Text
+          // Text (one step down)
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   '운동 루틴으로 더 빠르게 회복해요',
-                  style: context.titleSmall.copyWith(
-                    fontWeight: FontWeight.w700,
+                  style: context.bodyMedium.copyWith(
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -282,7 +274,7 @@ class _SecondaryExerciseCard extends StatelessWidget {
                     color: context.colorScheme.onSurfaceVariant,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 Text(
                   '프리미엄에서 제공돼요',
                   style: context.bodySmall.copyWith(
@@ -297,7 +289,7 @@ class _SecondaryExerciseCard extends StatelessWidget {
           // Arrow
           Icon(
             Icons.arrow_forward_ios_rounded,
-            size: 16,
+            size: 14,
             color: context.colorScheme.onSurfaceVariant,
           ),
         ],

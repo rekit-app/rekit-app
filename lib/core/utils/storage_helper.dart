@@ -3,6 +3,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../storage_keys.dart';
 import '../config/stage_config.dart';
 
+/// Read-only: 현재 진행 상태 (diagnosisCode, day, stage) 한번에 읽기
+Future<({String? diagnosisCode, int day, int stage})> loadProgress() async {
+  final prefs = await SharedPreferences.getInstance();
+  return (
+    diagnosisCode: prefs.getString(StorageKeys.diagnosisCode),
+    day: prefs.getInt(StorageKeys.day) ?? 1,
+    stage: prefs.getInt(StorageKeys.stage) ?? 1,
+  );
+}
+
 Future<void> resetDiagnosis() async {
   try {
     final prefs = await SharedPreferences.getInstance();
