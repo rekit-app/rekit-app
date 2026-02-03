@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/extensions/context_theme.dart';
 import 'home_screen.dart';
+import 'records_screen.dart';
 
 class RootScreen extends StatefulWidget {
   const RootScreen({super.key});
@@ -14,11 +15,7 @@ class _RootScreenState extends State<RootScreen> {
 
   static const _screens = <Widget>[
     HomeScreen(),
-    _PlaceholderScreen(
-      icon: Icons.insights_rounded,
-      title: '준비 중이에요',
-      subtitle: '운동 기록과 회복 통계가\n곧 추가될 예정이에요',
-    ),
+    RecordsScreen(),
     _PlaceholderScreen(
       icon: Icons.person_rounded,
       title: '준비 중이에요',
