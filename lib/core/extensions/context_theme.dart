@@ -15,6 +15,10 @@ extension AppTextTheme on BuildContext {
         color: Theme.of(this).colorScheme.onSurface,
       );
 
+  TextStyle get titleSmall => Theme.of(this).textTheme.titleSmall!.copyWith(
+        color: Theme.of(this).colorScheme.onSurface,
+      );
+
   TextStyle get bodyLarge => Theme.of(this).textTheme.bodyLarge!.copyWith(
         color: Theme.of(this).colorScheme.onSurface,
       );

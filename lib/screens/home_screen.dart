@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../core/extensions/context_theme.dart';
 import '../core/storage_keys.dart';
-import '../core/config/stage_config.dart';
-import '../core/utils/progress_helper.dart';
+import '../core/ui/soft_card.dart';
+import '../core/utils/storage_helper.dart';
 import '../features/diagnosis/data/programs.dart';
+import 'intro_screen.dart';
 import 'program_screen.dart';
 import 'paywall_screen.dart';
-import '../features/diagnosis/diagnosis_select_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,87 +21,55 @@ class _HomeScreenState extends State<HomeScreen> {
   int day = 1;
   int stage = 1;
   bool isLoading = true;
-  bool _blockingPaywall = false;
 
   @override
   void initState() {
     super.initState();
-    _reloadProgress();
+    _loadProgress();
   }
 
-  Future<void> _reloadProgress() async {
-    final data = await _getData();
-    if (!mounted) return;
-
-    setState(() {
-      diagnosisCode = data.$1;
-      debugPrint('DX LOADED: $diagnosisCode');
-      day = data.$2;
-      stage = data.$3;
-      isLoading = false;
-    });
-  }
-
-  Future<(String?, int, int)> _getData() async {
+  Future<void> _loadProgress() async {
     final prefs = await SharedPreferences.getInstance();
     final dx = prefs.getString(StorageKeys.diagnosisCode);
     final d = prefs.getInt(StorageKeys.day) ?? 1;
     final s = prefs.getInt(StorageKeys.stage) ?? 1;
-    return (dx, d, s);
-  }
 
-  Future<void> _handleHeroCardTap() async {
-    final enteredStage2 = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const ProgramScreen(),
-      ),
-    );
+    if (!mounted) return;
 
-    // 데이터 리로드
-    await _reloadProgress();
-
-    // Stage2 진입 확인
-    if (enteredStage2 == true && !_blockingPaywall) {
-      _blockingPaywall = true;
-      if (!mounted) return;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _showPaywallDialog();
-      });
-    }
-
-    if (enteredStage2 != true) {
-      _blockingPaywall = false;
-    }
-  }
-
-  void _showPaywallDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Stage 2 잠금 해제'),
-        content: const Text('더 강력한 근력 강화 프로그램을 시작하세요!'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('나중에'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(ctx); // Dialog 닫기
-              // PaywallScreen으로 이동
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const PaywallScreen()),
-              );
-            },
-            child: const Text('잠금 해제'),
-          ),
-        ],
-      ),
-    ).then((_) {
-      _blockingPaywall = false;
+    setState(() {
+      diagnosisCode = dx;
+      day = d;
+      stage = s;
+      isLoading = false;
     });
+  }
+
+  void _navigateToProgram() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ProgramScreen()),
+    );
+    _loadProgress();
+  }
+
+  void _navigateToPremium() {
+    if (stage < 2) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const PaywallScreen()),
+      );
+    } else {
+      _navigateToProgram();
+    }
+  }
+
+  Future<void> _resetAndRestart() async {
+    await resetDiagnosis();
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const IntroScreen()),
+    );
   }
 
   @override
@@ -114,402 +83,77 @@ class _HomeScreenState extends State<HomeScreen> {
     final dx = diagnosisCode;
     if (dx == null || programs[dx] == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Rekit')),
-        body: const Center(
-          child: Text('진단 정보가 없습니다.\n진단을 먼저 완료해주세요.'),
+        body: Center(
+          child: Text(
+            '진단 정보가 없습니다.\n진단을 먼저 완료해주세요.',
+            style: context.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
         ),
       );
     }
-
-    final stageMap = programs[dx]!;
-    final routine = stageMap[stage];
-    if (routine == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Rekit')),
-        body: const Center(
-          child: Text('해당 스테이지의 프로그램이 없습니다.'),
-        ),
-      );
-    }
-
-    final maxDays =
-        stage == 1 ? getStage1Days(dx) : programs[dx]![stage]!.length;
-
-    final progress = getStageProgress(day, maxDays);
 
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Gradient header area ──
-            Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFF00A881), Color(0xFF00D09E)],
-                ),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(32),
-                  bottomRight: Radius.circular(32),
-                ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 1) Header
+              _Header(day: day),
+              const SizedBox(height: 24),
+
+              // 2) Primary Card — Stretching (FREE)
+              _PrimaryStretchCard(
+                day: day,
+                onTap: _navigateToProgram,
               ),
-              child: SafeArea(
-                bottom: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Greeting Header — white text on gradient
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '안녕하세요, 찬수님',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .headlineMedium
-                                      ?.copyWith(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w800,
-                                      ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '오늘도 꾸준한 회복을 응원합니다',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.copyWith(
-                                        color: Colors.white
-                                            .withValues(alpha: 0.85),
-                                      ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: const Icon(
-                              Icons.person_outline_rounded,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
-                      // Today Program Hero Card — white card on gradient
-                      TodayProgramHeroCard(
-                        programTitle: '어깨 가동성 운동 프로그램',
-                        stage: stage,
-                        day: day,
-                        maxDays: maxDays,
-                        exerciseCount: routine.length,
-                        progress: progress,
-                        onTap: _handleHeroCardTap,
-                      ),
-                    ],
-                  ),
-                ),
+              // 3) Secondary Card — Exercise (PREMIUM)
+              _SecondaryExerciseCard(
+                onTap: _navigateToPremium,
               ),
-            ),
+              const SizedBox(height: 32),
 
-            // ── White content area ──
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Promo Banner
-                  _PromoBanner(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const DiagnosisSelectScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 28),
+              // 4) Discovery Section
+              const _DiscoverySection(),
+              const SizedBox(height: 32),
 
-                  // Workout Routines
-                  const _WorkoutRoutinesSection(),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ─── TodayProgramHeroCard ───────────────────────────────────
-
-class TodayProgramHeroCard extends StatelessWidget {
-  final String programTitle;
-  final int stage;
-  final int day;
-  final int maxDays;
-  final int exerciseCount;
-  final double progress;
-  final VoidCallback onTap;
-
-  const TodayProgramHeroCard({
-    super.key,
-    required this.programTitle,
-    required this.stage,
-    required this.day,
-    required this.maxDays,
-    required this.exerciseCount,
-    required this.progress,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    final progressPercent = (progress * 100).toInt();
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 24,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Top row: icon + stage badge
-            Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFD4F5EC),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: const Icon(
-                    Icons.fitness_center_rounded,
-                    color: Color(0xFF00D09E),
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        programTitle,
-                        style: text.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF2D3142),
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Stage $stage · Day $day / $maxDays · $exerciseCount개 운동',
-                        style: text.bodySmall?.copyWith(
-                          color: const Color(0xFF6E7787),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 20),
-
-            // Progress bar
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: progress,
-                minHeight: 6,
-                backgroundColor: const Color(0xFFE2E8E5),
-                valueColor:
-                    const AlwaysStoppedAnimation(Color(0xFF00D09E)),
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            // Progress label
-            Align(
-              alignment: Alignment.centerRight,
-              child: Text(
-                '$progressPercent% 완료',
-                style: text.labelSmall?.copyWith(
-                  color: const Color(0xFF6E7787),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // CTA button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: onTap,
-                child: Text(
-                  '오늘 운동 시작하기',
-                  style: text.titleMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ─── _PromoBanner ───────────────────────────────────────────
-
-class _PromoBanner extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const _PromoBanner({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              const Color(0xFF00D09E).withValues(alpha: 0.1),
-              const Color(0xFF00A881).withValues(alpha: 0.08),
+              // 5) Secondary Action — Reset
+              _ResetAction(onTap: _resetAndRestart),
             ],
           ),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: const Color(0xFF00D09E).withValues(alpha: 0.2),
-          ),
-        ),
-        child: Row(
-          children: [
-            // Icon
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: const Color(0xFF00D09E).withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: const Icon(
-                Icons.directions_run_rounded,
-                color: Color(0xFF00D09E),
-                size: 28,
-              ),
-            ),
-            const SizedBox(width: 16),
-            // Text
-            Expanded(
-              child: Text(
-                '나에게 맞는 운동 추천 받으러 가기',
-                style: text.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF2D3142),
-                ),
-              ),
-            ),
-            const Icon(
-              Icons.arrow_forward_ios_rounded,
-              color: Color(0xFF00D09E),
-              size: 18,
-            ),
-          ],
         ),
       ),
     );
   }
 }
 
-// ─── _WorkoutRoutinesSection ────────────────────────────────
+// ─── 1) Header ──────────────────────────────────────────────
 
-class _WorkoutRoutinesSection extends StatelessWidget {
-  const _WorkoutRoutinesSection();
+class _Header extends StatelessWidget {
+  final int day;
 
-  static const _routines = [
-    _RoutineData(
-      title: '물리치료사가 추천하는\n허리통증 예방 루틴',
-      difficulty: '초급',
-      duration: '15분',
-      icon: Icons.airline_seat_recline_normal_rounded,
-    ),
-    _RoutineData(
-      title: '집에서 하는\n필라테스 인기 동작 5가지',
-      difficulty: '중급',
-      duration: '20분',
-      icon: Icons.self_improvement_rounded,
-    ),
-  ];
+  const _Header({required this.day});
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '추천 운동 루틴',
-          style: text.titleMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: const Color(0xFF2D3142),
+          '오늘의 재활 루틴',
+          style: context.headlineMedium.copyWith(
+            fontWeight: FontWeight.w800,
           ),
         ),
-        const SizedBox(height: 16),
-        SizedBox(
-          height: 180,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: _routines.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemBuilder: (context, index) {
-              final r = _routines[index];
-              return _RoutineCard(
-                title: r.title,
-                difficulty: r.difficulty,
-                duration: r.duration,
-                icon: r.icon,
-              );
-            },
+        const SizedBox(height: 4),
+        Text(
+          '어깨 회복을 위한 맞춤 운동이에요',
+          style: context.bodyMedium.copyWith(
+            color: context.colorScheme.onSurfaceVariant,
           ),
         ),
       ],
@@ -517,79 +161,71 @@ class _WorkoutRoutinesSection extends StatelessWidget {
   }
 }
 
-class _RoutineData {
-  final String title;
-  final String difficulty;
-  final String duration;
-  final IconData icon;
+// ─── 2) Primary Card — Stretching (FREE) ────────────────────
 
-  const _RoutineData({
-    required this.title,
-    required this.difficulty,
-    required this.duration,
-    required this.icon,
-  });
-}
+class _PrimaryStretchCard extends StatelessWidget {
+  final int day;
+  final VoidCallback onTap;
 
-class _RoutineCard extends StatelessWidget {
-  final String title;
-  final String difficulty;
-  final String duration;
-  final IconData icon;
-
-  const _RoutineCard({
-    required this.title,
-    required this.difficulty,
-    required this.duration,
-    required this.icon,
+  const _PrimaryStretchCard({
+    required this.day,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-
-    return Container(
-      width: 200,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+    return SoftCard(
+      onTap: onTap,
+      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Icon badge
           Container(
-            width: 44,
-            height: 44,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
-              color: const Color(0xFFD4F5EC),
+              color: context.colorScheme.primaryContainer,
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(icon, color: const Color(0xFF00D09E), size: 22),
-          ),
-          const Spacer(),
-          Text(
-            title,
-            style: text.titleSmall?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFF2D3142),
-              height: 1.3,
+            child: Icon(
+              Icons.self_improvement_rounded,
+              color: context.colorScheme.primary,
             ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 16),
+
+          // Day label
           Text(
-            '$difficulty · $duration',
-            style: text.bodySmall?.copyWith(
-              color: const Color(0xFF6E7787),
+            'DAY $day · 오늘의 스트레칭',
+            style: context.titleMedium.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // Description
+          Text(
+            '몸을 부드럽게 풀어주는 루틴이에요',
+            style: context.bodyMedium.copyWith(
+              color: context.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '약 6분 · 통증 없는 범위에서 진행하세요',
+            style: context.bodySmall.copyWith(
+              color: context.colorScheme.onSurface.withValues(alpha: 0.5),
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // CTA
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: onTap,
+              child: const Text('바로 시작하기 →'),
             ),
           ),
         ],
@@ -598,3 +234,194 @@ class _RoutineCard extends StatelessWidget {
   }
 }
 
+// ─── 3) Secondary Card — Exercise (PREMIUM) ─────────────────
+
+class _SecondaryExerciseCard extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _SecondaryExerciseCard({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return SoftCard(
+      onTap: onTap,
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        children: [
+          // Icon badge
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: context.colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              Icons.fitness_center_rounded,
+              color: context.colorScheme.primary,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 16),
+
+          // Text
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '운동 루틴으로 더 빠르게 회복해요',
+                  style: context.titleSmall.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '근력 · 안정성 중심 프로그램',
+                  style: context.bodySmall.copyWith(
+                    color: context.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  '프리미엄에서 제공돼요',
+                  style: context.bodySmall.copyWith(
+                    color: context.colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Arrow
+          Icon(
+            Icons.arrow_forward_ios_rounded,
+            size: 16,
+            color: context.colorScheme.onSurfaceVariant,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── 4) Discovery Section ───────────────────────────────────
+
+class _DiscoverySection extends StatelessWidget {
+  const _DiscoverySection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '이런 운동도 도움이 될 수 있어요',
+          style: context.titleMedium.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 12),
+        const _DiscoveryCard(
+          title: '견갑 안정화 스트레치',
+          subtitle: '가볍게 따라 해보세요',
+        ),
+        const SizedBox(height: 10),
+        const _DiscoveryCard(
+          title: '어깨 후면 이완 루틴',
+          subtitle: '여유 있을 때 도움이 돼요',
+        ),
+      ],
+    );
+  }
+}
+
+class _DiscoveryCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+
+  const _DiscoveryCard({
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SoftCard(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: context.colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              Icons.play_arrow_rounded,
+              color: context.colorScheme.primary,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: context.titleSmall.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: context.bodySmall.copyWith(
+                    color: context.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── 5) Reset Action ────────────────────────────────────────
+
+class _ResetAction extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _ResetAction({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        children: [
+          TextButton(
+            onPressed: onTap,
+            child: Text(
+              '지금 상태에 맞게 다시 추천받기',
+              style: context.titleSmall.copyWith(
+                color: context.colorScheme.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          Text(
+            '간단한 진단으로 운동을 다시 추천해드려요',
+            style: context.bodySmall.copyWith(
+              color: context.colorScheme.onSurface.withValues(alpha: 0.5),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
