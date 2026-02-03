@@ -282,7 +282,25 @@ class _RecordsScreenState extends State<RecordsScreen> {
   }
 }
 
-// ─── Condition Input View ───────────────────────────────────
+// ─── Condition Input View (Slider-based) ────────────────────
+
+/// Maps slider value (0–9) to emoji.
+String _sliderEmoji(double value) {
+  if (value < 2) return '😖';
+  if (value < 4) return '😣';
+  if (value < 6) return '😐';
+  if (value < 8) return '🙂';
+  return '😄';
+}
+
+/// Maps slider value (0–9) to text label.
+String _sliderLabel(double value) {
+  if (value < 2) return '많이 힘들었어요';
+  if (value < 4) return '불편했어요';
+  if (value < 6) return '보통이에요';
+  if (value < 8) return '괜찮은 편이에요';
+  return '편안했어요';
+}
 
 class _ConditionInputView extends StatefulWidget {
   final int initialLevel;
@@ -300,15 +318,16 @@ class _ConditionInputView extends StatefulWidget {
 }
 
 class _ConditionInputViewState extends State<_ConditionInputView> {
-  late int _level;
-
-  static const _emojis = ['😖', '😣', '😕', '😕', '😐', '🙂', '🙂', '😊', '😊', '😄'];
+  late double _sliderValue;
+  bool _hasInteracted = false;
 
   @override
   void initState() {
     super.initState();
-    _level = widget.initialLevel;
+    _sliderValue = (widget.initialLevel - 1).toDouble();
   }
+
+  int _toStorageValue() => _sliderValue.round() + 1;
 
   @override
   Widget build(BuildContext context) {
@@ -332,15 +351,18 @@ class _ConditionInputViewState extends State<_ConditionInputView> {
               ),
               const Spacer(flex: 2),
 
-              // Current emoji — large
-              Text(
-                _emojis[_level - 1],
-                style: const TextStyle(fontSize: 72),
+              // Dynamic emoji — large (using Icon-sized container)
+              SizedBox(
+                height: 80,
+                child: FittedBox(
+                  child: Text(_sliderEmoji(_sliderValue)),
+                ),
               ),
               const SizedBox(height: 16),
 
+              // Dynamic text label
               Text(
-                _conditionLabel(_level),
+                _sliderLabel(_sliderValue),
                 style: context.titleLarge.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
@@ -357,61 +379,72 @@ class _ConditionInputViewState extends State<_ConditionInputView> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 8),
-              Text(
-                '본인 기준으로 편하게 선택해주세요',
-                style: context.bodySmall.copyWith(
-                  color: context.colorScheme.onSurfaceVariant,
-                ),
-                textAlign: TextAlign.center,
-              ),
               const SizedBox(height: 32),
 
-              // Horizontal emoji selector
-              SoftCard(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 16,
-                ),
+              // Slider with emoji anchors
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: List.generate(10, (index) {
-                    final level = index + 1;
-                    final isSelected = _level == level;
-                    return GestureDetector(
-                      onTap: () => setState(() => _level = level),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        width: 28,
-                        height: 28,
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? context.colorScheme.primary
-                              : context.colorScheme.surfaceContainerHigh,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: AnimatedDefaultTextStyle(
-                            duration: const Duration(milliseconds: 200),
-                            style: TextStyle(
-                              fontSize: isSelected ? 16 : 12,
-                            ),
-                            child: Text(_emojis[index]),
+                  children: [
+                    const SizedBox(
+                      width: 32,
+                      child: FittedBox(child: Text('😖')),
+                    ),
+                    Expanded(
+                      child: SliderTheme(
+                        data: SliderThemeData(
+                          activeTrackColor: context.colorScheme.primary,
+                          inactiveTrackColor:
+                              context.colorScheme.surfaceContainerHighest,
+                          thumbColor: context.colorScheme.primary,
+                          overlayColor:
+                              context.colorScheme.primary.withValues(alpha: 0.12),
+                          trackHeight: 8,
+                          thumbShape: const RoundSliderThumbShape(
+                            enabledThumbRadius: 14,
                           ),
                         ),
+                        child: Slider(
+                          value: _sliderValue,
+                          min: 0,
+                          max: 9,
+                          onChanged: (value) {
+                            setState(() {
+                              _sliderValue = value;
+                              _hasInteracted = true;
+                            });
+                          },
+                        ),
                       ),
-                    );
-                  }),
+                    ),
+                    const SizedBox(
+                      width: 32,
+                      child: FittedBox(child: Text('😄')),
+                    ),
+                  ],
                 ),
+              ),
+              const SizedBox(height: 16),
+
+              // Instruction text
+              Text(
+                '본인 기준으로\n편하게 조절해주세요',
+                style: context.bodySmall.copyWith(
+                  color: context.colorScheme.onSurfaceVariant,
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
               ),
 
               const Spacer(flex: 3),
 
-              // Save button
+              // Save button (enabled only after interaction)
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () => widget.onSave(_level),
+                  onPressed: _hasInteracted
+                      ? () => widget.onSave(_toStorageValue())
+                      : null,
                   child: const Text('저장하기'),
                 ),
               ),
