@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../core/extensions/context_theme.dart';
 import '../core/storage_keys.dart';
 import '../core/ui/soft_card.dart';
+import 'ask_expert_screen.dart';
 
 // ─── RecordEntry Model (UI only) ────────────────────────────
 
@@ -508,6 +509,15 @@ class _RecordsList extends StatelessWidget {
 class _PremiumTeaser extends StatelessWidget {
   const _PremiumTeaser();
 
+  void _onAskExpertTap(BuildContext context) {
+    // TODO: Check premium status and navigate to PaywallScreen if not premium
+    // For now, directly navigate to AskExpertScreen
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AskExpertScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -539,6 +549,57 @@ class _PremiumTeaser extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 12),
+
+        // Ask Expert card
+        SoftCard(
+          onTap: () => _onAskExpertTap(context),
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: context.colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.question_answer_rounded,
+                  color: context.colorScheme.primary,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '전문가에게 질문하기',
+                      style: context.titleSmall.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '회복 과정에 대한 질문을 남기고 답변을 받아보세요.',
+                      style: context.bodySmall.copyWith(
+                        color: context.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: context.colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // Recovery insights card (teaser only)
         SoftCard(
           padding: const EdgeInsets.all(20),
           child: Row(
