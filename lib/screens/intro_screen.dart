@@ -68,8 +68,8 @@ class _IntroScreenState extends State<IntroScreen> {
                     _IntroPage(
                       icon: Icons.verified_rounded,
                       title: '현장 기반의\n검증된 데이터',
-                      subtitle: '도수치료 환자 6만 건 데이터 기반\n간호사 · 퍼스널 트레이너 · 필라테스 강사 협업',
-                      footer: '물리치료사가 직접 설계한 회복 프로그램',
+                      subtitle: '풍부한 임상 데이터 기반\n간호사 · 퍼스널 트레이너 · 필라테스 강사 협업',
+                      footer: '전문가가 직접 설계한 회복 프로그램',
                     ),
                     _IntroPage(
                       icon: Icons.self_improvement_rounded,
@@ -111,6 +111,17 @@ class _IntroScreenState extends State<IntroScreen> {
                       ),
                     ),
                   ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Text(
+                  'Rekit은 의료 기기가 아니며, 제공되는 결과는 의학적 진단이 아닙니다.\n정확한 상태 파악을 위해서는 반드시 전문의와 상담하세요.',
+                  style: text.bodySmall?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.5),
+                    fontSize: 10,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ),
             ],

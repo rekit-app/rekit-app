@@ -59,12 +59,24 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _navigateToPremium() {
+  Future<void> _navigateToPremium() async {
     if (stage < 2) {
-      Navigator.push(
+      final result = await Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const PaywallScreen()),
       );
+
+      // If unlocked successfully, reload progress
+      if (result == true) {
+        _loadProgress();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Stage 2가 해제되었습니다! 이제 심화 프로그램을 시작할 수 있습니다.'),
+            backgroundColor: Color(0xFF00D09E),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     } else {
       _navigateToProgram();
     }
@@ -111,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // 1) Header
-              const _Header(),
+              _Header(diagnosisCode: dx),
               const SizedBox(height: 24),
 
               // 2) Primary Card — Stretching (FREE)
@@ -145,7 +157,9 @@ class _HomeScreenState extends State<HomeScreen> {
 // ─── 1) Header ──────────────────────────────────────────────
 
 class _Header extends StatelessWidget {
-  const _Header();
+  final String? diagnosisCode;
+
+  const _Header({required this.diagnosisCode});
 
   @override
   Widget build(BuildContext context) {
@@ -160,7 +174,7 @@ class _Header extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          '어깨 회복을 위한 맞춤 운동이에요',
+          '${getBodyPartLabel(diagnosisCode)} 회복을 위한 맞춤 운동이에요',
           style: context.bodyMedium.copyWith(
             color: context.colorScheme.onSurfaceVariant,
           ),

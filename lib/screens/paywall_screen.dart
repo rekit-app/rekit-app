@@ -8,21 +8,34 @@ class PaywallScreen extends StatelessWidget {
   const PaywallScreen({super.key});
 
   Future<void> _unlockStage2(BuildContext context) async {
-    if (!Navigator.of(context).canPop()) return;
+    // 1. Show processing state
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const Center(
+        child: CircularProgressIndicator(
+          color: Colors.white,
+        ),
+      ),
+    );
 
+    // 2. Simulate network delay (2.0s)
+    await Future.delayed(const Duration(seconds: 2));
+
+    if (!context.mounted) return;
+
+    // 3. Save Data (Unlock Stage 2)
     final prefs = await SharedPreferences.getInstance();
-
-    // Stage2 Day1 설정
     await prefs.setInt(StorageKeys.stage, 2);
     await prefs.setInt(StorageKeys.day, 1);
 
     if (!context.mounted) return;
 
-    // ProgramScreen으로 이동 (push - Home stack 유지)
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const ProgramScreen()),
-    );
+    // 4. Pop Loading Dialog
+    Navigator.of(context).pop(); // pop dialog
+
+    // 5. Return success to previous screen
+    Navigator.of(context).pop(true); // pop Paywall with success
   }
 
   @override
@@ -67,12 +80,50 @@ class PaywallScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 48),
 
-                  // Primary CTA
-                  ElevatedButton(
-                    onPressed: () => _unlockStage2(context),
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 12),
-                      child: Text('심화 프로그램 시작하기'),
+                  // Primary CTA - Premium Gold Button
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFFFD700).withValues(alpha: 0.4),
+                          blurRadius: 16,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => _unlockStage2(context),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.workspace_premium_rounded,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '심화 프로그램 시작하기',
+                                style: context.titleMedium.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),

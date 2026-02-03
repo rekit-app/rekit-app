@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../core/storage_keys.dart';
 import '../core/config/stage_config.dart';
 import 'root_screen.dart';
+import '../core/utils/progress_helper.dart';
 
 class ResultScreen extends StatelessWidget {
   const ResultScreen({super.key});
@@ -81,9 +82,9 @@ class _ResultData {
     required this.maxDays,
   });
 
+
   String get bodyPartLabel {
-    if (diagnosisCode.startsWith('DX_')) return '어깨';
-    return '부위 미확인';
+    return getBodyPartLabel(diagnosisCode);
   }
 }
 
@@ -179,17 +180,16 @@ class _StepGuide extends StatelessWidget {
               label: 'ROM 회복 · 스트레칭',
               active: true,
             ),
-            const SizedBox(height: 12),
             const _StepRow(
               step: 2,
               label: '근력 강화',
               active: false,
             ),
-            const SizedBox(height: 12),
             const _StepRow(
               step: 3,
               label: '기능 회복',
               active: false,
+              isLast: true,
             ),
           ],
         ),
@@ -202,36 +202,82 @@ class _StepRow extends StatelessWidget {
   final int step;
   final String label;
   final bool active;
+  final bool isLast;
 
-  const _StepRow(
-      {required this.step, required this.label, required this.active});
+  const _StepRow({
+    required this.step,
+    required this.label,
+    required this.active,
+    this.isLast = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          width: 32,
-          height: 32,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: active
-                  ? theme.colorScheme.primary
-                  : theme.colorScheme.outlineVariant,
+        // Step indicator with connecting line
+        Column(
+          children: [
+            // Circle with glow effect for active
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: active
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.outlineVariant,
+                boxShadow: active
+                    ? [
+                        BoxShadow(
+                          color: theme.colorScheme.primary.withValues(alpha: 0.4),
+                          blurRadius: 12,
+                          spreadRadius: 2,
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Center(
+                child: Text(
+                  '$step',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: active
+                        ? theme.colorScheme.onPrimary
+                        : theme.colorScheme.onSurfaceVariant,
+                    fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
+              ),
             ),
-            child: Center(
-              child: Text('$step', style: theme.textTheme.bodyMedium),
-            ),
-          ),
+            // Connecting line (not for last item)
+            if (!isLast)
+              Container(
+                width: 2,
+                height: 24,
+                margin: const EdgeInsets.symmetric(vertical: 4),
+                color: active
+                    ? theme.colorScheme.primary.withValues(alpha: 0.5)
+                    : theme.colorScheme.outlineVariant,
+              ),
+          ],
         ),
         const SizedBox(width: 12),
-        Text(
-          label,
-          style:
-              active ? theme.textTheme.bodyMedium : theme.textTheme.bodySmall,
+        // Label
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(
+            label,
+            style: active
+                ? theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  )
+                : theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+          ),
         ),
       ],
     );

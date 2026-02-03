@@ -19,13 +19,13 @@ final Map<String, Map<String, dynamic>> neckQuestions = {
     'title': '움직임 방향',
     'question': '어떤 움직임에서 통증이 발생하나요?',
     'options': [
-      {'text': 'Flex (숙이기)', 'next': 'Q04'},
-      {'text': 'Ext (젖히기)', 'next': 'Q07'},
-      {'text': 'Side Flex (옆으로 숙이기)', 'next': 'Q10'},
+      {'text': '고개 숙이기', 'next': 'Q04'},
+      {'text': '고개 젖히기', 'next': 'Q07'},
+      {'text': '옆으로 기울이기 (귀가 어깨에 닿게)', 'next': 'Q10'},
     ],
   },
   'Q04': {
-    'title': 'Flex 통증 위치',
+    'title': '숙일 때 통증 위치',
     'question': '통증이 목의 위쪽인가요, 아래쪽인가요?',
     'options': [
       {'text': '위', 'next': 'Q05'},
@@ -33,23 +33,23 @@ final Map<String, Map<String, dynamic>> neckQuestions = {
     ],
   },
   'Q05': {
-    'title': 'Flex 위 회전',
+    'title': '숙이고 회전 확인 (위쪽 통증)',
     'question': '회전 시 어느 쪽이 더 아프신가요?',
     'options': [
-      {'text': 'Rt. rot (오른쪽 회전)', 'next': 'DX_NECK_1'},
-      {'text': 'Lt. rot (왼쪽 회전)', 'next': 'DX_NECK_2'},
+      {'text': '오른쪽으로 돌릴 때', 'next': 'DX_NECK_1'},
+      {'text': '왼쪽으로 돌릴 때', 'next': 'DX_NECK_2'},
     ],
   },
   'Q06': {
-    'title': 'Flex 아래 회전',
+    'title': '숙이고 회전 확인 (아래쪽 통증)',
     'question': '회전 시 어느 쪽이 더 아프신가요?',
     'options': [
-      {'text': 'Rt. rot (오른쪽 회전)', 'next': 'DX_NECK_3'},
-      {'text': 'Lt. rot (왼쪽 회전)', 'next': 'DX_NECK_4'},
+      {'text': '오른쪽으로 돌릴 때', 'next': 'DX_NECK_3'},
+      {'text': '왼쪽으로 돌릴 때', 'next': 'DX_NECK_4'},
     ],
   },
   'Q07': {
-    'title': 'Ext 통증 위치',
+    'title': '젖힐 때 통증 위치',
     'question': '통증이 목의 위쪽인가요, 아래쪽인가요?',
     'options': [
       {'text': '위', 'next': 'Q08'},
@@ -57,31 +57,31 @@ final Map<String, Map<String, dynamic>> neckQuestions = {
     ],
   },
   'Q08': {
-    'title': 'Ext 위 회전',
+    'title': '젖히고 회전 확인 (위쪽 통증)',
     'question': '회전 시 어느 쪽이 더 아프신가요?',
     'options': [
-      {'text': 'Rt. rot (오른쪽 회전)', 'next': 'DX_NECK_5'},
-      {'text': 'Lt. rot (왼쪽 회전)', 'next': 'DX_NECK_6'},
+      {'text': '오른쪽으로 돌릴 때', 'next': 'DX_NECK_5'},
+      {'text': '왼쪽으로 돌릴 때', 'next': 'DX_NECK_6'},
     ],
   },
   'Q09': {
-    'title': 'Ext 아래 회전',
+    'title': '젖히고 회전 확인 (아래쪽 통증)',
     'question': '회전 시 어느 쪽이 더 아프신가요?',
     'options': [
-      {'text': 'Rt. rot (오른쪽 회전)', 'next': 'DX_NECK_7'},
-      {'text': 'Lt. rot (왼쪽 회전)', 'next': 'DX_NECK_8'},
+      {'text': '오른쪽으로 돌릴 때', 'next': 'DX_NECK_7'},
+      {'text': '왼쪽으로 돌릴 때', 'next': 'DX_NECK_8'},
     ],
   },
   'Q10': {
-    'title': 'Side Flex 방향',
+    'title': '기울이기 방향',
     'question': '어느 쪽으로 숙일 때 아프신가요?',
     'options': [
-      {'text': 'Lt. (왼쪽)', 'next': 'Q11'},
-      {'text': 'Rt. (오른쪽)', 'next': 'Q14'},
+      {'text': '왼쪽', 'next': 'Q11'},
+      {'text': '오른쪽', 'next': 'Q14'},
     ],
   },
   'Q11': {
-    'title': 'Lt Side Flex 통증 위치',
+    'title': '왼쪽 기울이기 통증 위치',
     'question': '어디가 아프세요?',
     'options': [
       {'text': '왼쪽', 'next': 'Q12'},
@@ -89,7 +89,7 @@ final Map<String, Map<String, dynamic>> neckQuestions = {
     ],
   },
   'Q12': {
-    'title': 'Lt Side Flex 왼쪽 통증',
+    'title': '왼쪽 기울이기 (왼쪽 통증)',
     'question': '통증이 목의 위쪽인가요, 아래쪽인가요?',
     'options': [
       {'text': '위', 'next': 'Q12A'},
@@ -97,23 +97,23 @@ final Map<String, Map<String, dynamic>> neckQuestions = {
     ],
   },
   'Q12A': {
-    'title': 'Lt Side Flex 왼쪽 위 회전',
+    'title': '왼쪽 기울이기 위 회전',
     'question': '회전 시 어느 쪽이 더 아프신가요?',
     'options': [
-      {'text': 'Rt. rot (오른쪽 회전)', 'next': 'DX_NECK_9'},
-      {'text': 'Lt. rot (왼쪽 회전)', 'next': 'DX_NECK_10'},
+      {'text': '오른쪽으로 돌릴 때', 'next': 'DX_NECK_9'},
+      {'text': '왼쪽으로 돌릴 때', 'next': 'DX_NECK_10'},
     ],
   },
   'Q12B': {
-    'title': 'Lt Side Flex 왼쪽 아래 회전',
+    'title': '왼쪽 기울이기 아래 회전',
     'question': '회전 시 어느 쪽이 더 아프신가요?',
     'options': [
-      {'text': 'Rt. rot (오른쪽 회전)', 'next': 'DX_NECK_11'},
-      {'text': 'Lt. rot (왼쪽 회전)', 'next': 'DX_NECK_12'},
+      {'text': '오른쪽으로 돌릴 때', 'next': 'DX_NECK_11'},
+      {'text': '왼쪽으로 돌릴 때', 'next': 'DX_NECK_12'},
     ],
   },
   'Q13': {
-    'title': 'Lt Side Flex 오른쪽 통증',
+    'title': '왼쪽 기울이기 (오른쪽 통증)',
     'question': '통증이 목의 위쪽인가요, 아래쪽인가요?',
     'options': [
       {'text': '위', 'next': 'Q13A'},
@@ -121,23 +121,23 @@ final Map<String, Map<String, dynamic>> neckQuestions = {
     ],
   },
   'Q13A': {
-    'title': 'Lt Side Flex 오른쪽 위 회전',
+    'title': '왼쪽 기울이기 위 회전',
     'question': '회전 시 어느 쪽이 더 아프신가요?',
     'options': [
-      {'text': 'Rt. rot (오른쪽 회전)', 'next': 'DX_NECK_13'},
-      {'text': 'Lt. rot (왼쪽 회전)', 'next': 'DX_NECK_14'},
+      {'text': '오른쪽으로 돌릴 때', 'next': 'DX_NECK_13'},
+      {'text': '왼쪽으로 돌릴 때', 'next': 'DX_NECK_14'},
     ],
   },
   'Q13B': {
-    'title': 'Lt Side Flex 오른쪽 아래 회전',
+    'title': '왼쪽 기울이기 아래 회전',
     'question': '회전 시 어느 쪽이 더 아프신가요?',
     'options': [
-      {'text': 'Rt. rot (오른쪽 회전)', 'next': 'DX_NECK_15'},
-      {'text': 'Lt. rot (왼쪽 회전)', 'next': 'DX_NECK_16'},
+      {'text': '오른쪽으로 돌릴 때', 'next': 'DX_NECK_15'},
+      {'text': '왼쪽으로 돌릴 때', 'next': 'DX_NECK_16'},
     ],
   },
   'Q14': {
-    'title': 'Rt Side Flex 통증 위치',
+    'title': '오른쪽 기울이기 통증 위치',
     'question': '어디가 아프세요?',
     'options': [
       {'text': '오른쪽', 'next': 'Q15'},
@@ -145,7 +145,7 @@ final Map<String, Map<String, dynamic>> neckQuestions = {
     ],
   },
   'Q15': {
-    'title': 'Rt Side Flex 오른쪽 통증',
+    'title': '오른쪽 기울이기 (오른쪽 통증)',
     'question': '통증이 목의 위쪽인가요, 아래쪽인가요?',
     'options': [
       {'text': '위', 'next': 'Q15A'},
@@ -153,23 +153,23 @@ final Map<String, Map<String, dynamic>> neckQuestions = {
     ],
   },
   'Q15A': {
-    'title': 'Rt Side Flex 오른쪽 위 회전',
+    'title': '오른쪽 기울이기 위 회전',
     'question': '회전 시 어느 쪽이 더 아프신가요?',
     'options': [
-      {'text': 'Rt. rot (오른쪽 회전)', 'next': 'DX_NECK_17'},
-      {'text': 'Lt. rot (왼쪽 회전)', 'next': 'DX_NECK_18'},
+      {'text': '오른쪽으로 돌릴 때', 'next': 'DX_NECK_17'},
+      {'text': '왼쪽으로 돌릴 때', 'next': 'DX_NECK_18'},
     ],
   },
   'Q15B': {
-    'title': 'Rt Side Flex 오른쪽 아래 회전',
+    'title': '오른쪽 기울이기 아래 회전',
     'question': '회전 시 어느 쪽이 더 아프신가요?',
     'options': [
-      {'text': 'Rt. rot (오른쪽 회전)', 'next': 'DX_NECK_19'},
-      {'text': 'Lt. rot (왼쪽 회전)', 'next': 'DX_NECK_20'},
+      {'text': '오른쪽으로 돌릴 때', 'next': 'DX_NECK_19'},
+      {'text': '왼쪽으로 돌릴 때', 'next': 'DX_NECK_20'},
     ],
   },
   'Q16': {
-    'title': 'Rt Side Flex 왼쪽 통증',
+    'title': '오른쪽 기울이기 (왼쪽 통증)',
     'question': '통증이 목의 위쪽인가요, 아래쪽인가요?',
     'options': [
       {'text': '위', 'next': 'Q16A'},
@@ -177,19 +177,19 @@ final Map<String, Map<String, dynamic>> neckQuestions = {
     ],
   },
   'Q16A': {
-    'title': 'Rt Side Flex 왼쪽 위 회전',
+    'title': '오른쪽 기울이기 위 회전',
     'question': '회전 시 어느 쪽이 더 아프신가요?',
     'options': [
-      {'text': 'Rt. rot (오른쪽 회전)', 'next': 'DX_NECK_21'},
-      {'text': 'Lt. rot (왼쪽 회전)', 'next': 'DX_NECK_22'},
+      {'text': '오른쪽으로 돌릴 때', 'next': 'DX_NECK_21'},
+      {'text': '왼쪽으로 돌릴 때', 'next': 'DX_NECK_22'},
     ],
   },
   'Q16B': {
-    'title': 'Rt Side Flex 왼쪽 아래 회전',
+    'title': '오른쪽 기울이기 아래 회전',
     'question': '회전 시 어느 쪽이 더 아프신가요?',
     'options': [
-      {'text': 'Rt. rot (오른쪽 회전)', 'next': 'DX_NECK_23'},
-      {'text': 'Lt. rot (왼쪽 회전)', 'next': 'DX_NECK_24'},
+      {'text': '오른쪽으로 돌릴 때', 'next': 'DX_NECK_23'},
+      {'text': '왼쪽으로 돌릴 때', 'next': 'DX_NECK_24'},
     ],
   },
   'Q17': {

@@ -346,7 +346,9 @@ class _TopBar extends StatelessWidget {
             children: [
               Text(
                 'Day $day',
-                style: context.textTheme.titleMedium,
+                style: context.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               Text(
                 '${currentIndex + 1}/$totalCount 동작',

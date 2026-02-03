@@ -24,8 +24,8 @@ final Map<String, Map<String, dynamic>> shoulderQuestions = {
     ],
   },
   'Q04': {
-    'title': 'External Rotation 테스트',
-    'question': 'External Rotation하고 팔을 올렐을 때 통증이 줄어드나요?',
+    'title': '팔 돌리기 테스트',
+    'question': '팔을 바깥으로 돌린 상태에서 올렸을 때 통증이 줄어드나요?',
     'options': [
       {'text': '통증이 증가함', 'next': 'Q04A'},
       {'text': '통증의 변화가 없음', 'next': 'Q04B'},
@@ -77,9 +77,9 @@ final Map<String, Map<String, dynamic>> shoulderQuestions = {
     'title': '특정 동작 제한 (6개월~1년)',
     'question': '어떤 동작이 가장 불편하신가요?',
     'options': [
-      {'text': 'IR', 'next': 'DX_FROZEN_2'},
-      {'text': 'ER', 'next': 'DX_FROZEN_3'},
-      {'text': 'FL', 'next': 'DX_FROZEN_4'},
+      {'text': '등 뒤로 돌릴 때', 'next': 'DX_FROZEN_2'},
+      {'text': '바깥으로 돌릴 때', 'next': 'DX_FROZEN_3'},
+      {'text': '앞으로 들 때', 'next': 'DX_FROZEN_4'},
     ],
   },
   'Q05B': {
@@ -94,14 +94,14 @@ final Map<String, Map<String, dynamic>> shoulderQuestions = {
     'title': '특정 동작 제한 (1년 이상)',
     'question': '어떤 동작이 가장 불편하신가요?',
     'options': [
-      {'text': 'FL할 때', 'next': 'DX_FROZEN_6'},
-      {'text': 'ER 할 때', 'next': 'DX_FROZEN_7'},
-      {'text': 'IR 할 때', 'next': 'DX_FROZEN_8'},
+      {'text': '앞으로 들 때', 'next': 'DX_FROZEN_6'},
+      {'text': '바깥으로 돌릴 때', 'next': 'DX_FROZEN_7'},
+      {'text': '등 뒤로 돌릴 때', 'next': 'DX_FROZEN_8'},
     ],
   },
   'Q06': {
     'title': '회전 동작 확인',
-    'question': '바깥으로 돌리거나(ER), 안쪽으로 돌릴 때(IR) 둘 중 하나라도 통증이나 힘 빠짐이 있나요?',
+    'question': '바깥으로 돌리거나, 안쪽으로 돌릴 때 둘 중 하나라도 통증이나 힘 빠짐이 있나요?',
     'options': [
       {'text': '네', 'next': 'Q07'},
       {'text': '아니오', 'next': 'Q08'},
@@ -111,20 +111,20 @@ final Map<String, Map<String, dynamic>> shoulderQuestions = {
     'title': '회전 방향 확인',
     'question': '어느 방향에서 문제가 있나요?',
     'options': [
-      {'text': 'IR', 'next': 'Q07A'},
-      {'text': 'ER', 'next': 'Q07B'},
+      {'text': '안쪽으로 돌릴 때', 'next': 'Q07A'},
+      {'text': '바깥으로 돌릴 때', 'next': 'Q07B'},
     ],
   },
   'Q07A': {
-    'title': '편심성 수축 테스트 (IR)',
-    'question': '팔을 들어올리고 천천히 내렸을 때(5초~8초) 통증이 발생하거나 힘이 빠지나요?',
+    'title': '버티기 힘 확인 (안쪽)',
+    'question': '팔을 들어올리고 천천히 내렸을 때(5초~8초) 통증이 발생하거나 힘이 툭 빠지나요?',
     'options': [
       {'text': '네', 'next': 'Q07A1'},
       {'text': '아니오', 'next': 'DX_RCT_3'},
     ],
   },
   'Q07A1': {
-    'title': '열중쉬엇 동작 (IR)',
+    'title': '열중쉬엇 동작',
     'question': '이 동작이 가능한가요? (열중쉬엇)',
     'options': [
       {'text': '아니오', 'next': 'DX_RCT_1'},
@@ -132,15 +132,15 @@ final Map<String, Map<String, dynamic>> shoulderQuestions = {
     ],
   },
   'Q07B': {
-    'title': '편심성 수축 테스트 (ER)',
-    'question': '팔을 들어올리고 천천히 내렸을 때(5초~8초) 통증이 발생하거나 힘이 빠지나요?',
+    'title': '버티기 힘 확인 (바깥쪽)',
+    'question': '팔을 들어올리고 천천히 내렸을 때(5초~8초) 통증이 발생하거나 힘이 툭 빠지나요?',
     'options': [
       {'text': '네', 'next': 'Q07B1'},
       {'text': '아니오', 'next': 'DX_RCT_6'},
     ],
   },
   'Q07B1': {
-    'title': '열중쉬엇 동작 (ER)',
+    'title': '열중쉬엇 동작',
     'question': '이 동작이 가능한가요? (열중쉬엇)',
     'options': [
       {'text': '아니오', 'next': 'DX_RCT_4'},
@@ -148,8 +148,8 @@ final Map<String, Map<String, dynamic>> shoulderQuestions = {
     ],
   },
   'Q08': {
-    'title': '편심성 수축 일반 테스트',
-    'question': '팔을 들어올리고 천천히 내렸을 때(5~8초 정도) 통증이 발생하거나 힘이 빠지나요?',
+    'title': '버티기 힘 일반 테스트',
+    'question': '팔을 들어올리고 천천히 내렸을 때(5~8초 정도) 통증이 발생하거나 힘이 툭 빠지나요?',
     'options': [
       {'text': '네', 'next': 'Q08A'},
       {'text': '아니오', 'next': 'Q08B'},
