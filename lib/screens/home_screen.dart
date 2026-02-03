@@ -6,6 +6,7 @@ import '../core/utils/progress_helper.dart';
 import '../features/diagnosis/data/programs.dart';
 import 'program_screen.dart';
 import 'paywall_screen.dart';
+import '../features/diagnosis/diagnosis_select_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -225,21 +226,26 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
 
             // ── White content area ──
-            const Padding(
-              padding: EdgeInsets.fromLTRB(20, 24, 20, 32),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Promo Banner
-                  _PromoBanner(),
-                  SizedBox(height: 28),
+                  _PromoBanner(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const DiagnosisSelectScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 28),
 
                   // Workout Routines
-                  _WorkoutRoutinesSection(),
-                  SizedBox(height: 28),
-
-                  // Rehab Tools
-                  _RehabToolsSection(),
+                  const _WorkoutRoutinesSection(),
                 ],
               ),
             ),
@@ -388,85 +394,67 @@ class TodayProgramHeroCard extends StatelessWidget {
 // ─── _PromoBanner ───────────────────────────────────────────
 
 class _PromoBanner extends StatelessWidget {
-  const _PromoBanner();
+  final VoidCallback onTap;
+
+  const _PromoBanner({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            const Color(0xFF00D09E).withValues(alpha: 0.1),
-            const Color(0xFF00A881).withValues(alpha: 0.08),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: const Color(0xFF00D09E).withValues(alpha: 0.2),
-        ),
-      ),
-      child: Row(
-        children: [
-          // Icon
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: const Color(0xFF00D09E).withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Icon(
-              Icons.shopping_bag_rounded,
-              color: Color(0xFF00D09E),
-              size: 28,
-            ),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              const Color(0xFF00D09E).withValues(alpha: 0.1),
+              const Color(0xFF00A881).withValues(alpha: 0.08),
+            ],
           ),
-          const SizedBox(width: 16),
-          // Text
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Rekit 재활 키트',
-                  style: text.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF2D3142),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '전문가가 선별한 재활 도구 세트',
-                  style: text.bodySmall?.copyWith(
-                    color: const Color(0xFF6E7787),
-                  ),
-                ),
-              ],
-            ),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: const Color(0xFF00D09E).withValues(alpha: 0.2),
           ),
-          // Buy button
-          ElevatedButton(
-            onPressed: () {},
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            child: Text(
-              '보러가기',
-              style: text.labelLarge?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
+        ),
+        child: Row(
+          children: [
+            // Icon
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: const Color(0xFF00D09E).withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Icon(
+                Icons.directions_run_rounded,
+                color: Color(0xFF00D09E),
+                size: 28,
               ),
             ),
-          ),
-        ],
+            const SizedBox(width: 16),
+            // Text
+            Expanded(
+              child: Text(
+                '나에게 맞는 운동 추천 받으러 가기',
+                style: text.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF2D3142),
+                ),
+              ),
+            ),
+            const Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: Color(0xFF00D09E),
+              size: 18,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -479,27 +467,15 @@ class _WorkoutRoutinesSection extends StatelessWidget {
 
   static const _routines = [
     _RoutineData(
-      title: '어깨 가동성',
+      title: '물리치료사가 추천하는\n허리통증 예방 루틴',
       difficulty: '초급',
       duration: '15분',
-      icon: Icons.accessibility_new_rounded,
-    ),
-    _RoutineData(
-      title: '목 스트레칭',
-      difficulty: '초급',
-      duration: '10분',
-      icon: Icons.person_rounded,
-    ),
-    _RoutineData(
-      title: '코어 안정화',
-      difficulty: '중급',
-      duration: '20분',
       icon: Icons.airline_seat_recline_normal_rounded,
     ),
     _RoutineData(
-      title: '전신 밸런스',
+      title: '집에서 하는\n필라테스 인기 동작 5가지',
       difficulty: '중급',
-      duration: '25분',
+      duration: '20분',
       icon: Icons.self_improvement_rounded,
     ),
   ];
@@ -520,7 +496,7 @@ class _WorkoutRoutinesSection extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         SizedBox(
-          height: 160,
+          height: 180,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: _routines.length,
@@ -573,7 +549,7 @@ class _RoutineCard extends StatelessWidget {
     final text = Theme.of(context).textTheme;
 
     return Container(
-      width: 140,
+      width: 200,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -604,9 +580,12 @@ class _RoutineCard extends StatelessWidget {
             style: text.titleSmall?.copyWith(
               fontWeight: FontWeight.w700,
               color: const Color(0xFF2D3142),
+              height: 1.3,
             ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Text(
             '$difficulty · $duration',
             style: text.bodySmall?.copyWith(
@@ -619,141 +598,3 @@ class _RoutineCard extends StatelessWidget {
   }
 }
 
-// ─── _RehabToolsSection ─────────────────────────────────────
-
-class _RehabToolsSection extends StatelessWidget {
-  const _RehabToolsSection();
-
-  static const _tools = [
-    _ToolData(
-      name: '세라밴드 (경량)',
-      price: '₩12,900',
-      icon: Icons.fitness_center_rounded,
-    ),
-    _ToolData(
-      name: '폼롤러 45cm',
-      price: '₩24,900',
-      icon: Icons.sports_gymnastics_rounded,
-    ),
-    _ToolData(
-      name: '마사지볼 세트',
-      price: '₩15,900',
-      icon: Icons.circle_outlined,
-    ),
-    _ToolData(
-      name: '밸런스 패드',
-      price: '₩29,900',
-      icon: Icons.square_foot_rounded,
-    ),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '재활 도구',
-          style: text.titleMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: const Color(0xFF2D3142),
-          ),
-        ),
-        const SizedBox(height: 16),
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 1.1,
-          children: _tools.map((tool) {
-            return _ToolCard(
-              name: tool.name,
-              price: tool.price,
-              icon: tool.icon,
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-}
-
-class _ToolData {
-  final String name;
-  final String price;
-  final IconData icon;
-
-  const _ToolData({
-    required this.name,
-    required this.price,
-    required this.icon,
-  });
-}
-
-class _ToolCard extends StatelessWidget {
-  final String name;
-  final String price;
-  final IconData icon;
-
-  const _ToolCard({
-    required this.name,
-    required this.price,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF1F8F6),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, color: const Color(0xFF00D09E), size: 24),
-          ),
-          const Spacer(),
-          Text(
-            name,
-            style: text.titleSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: const Color(0xFF2D3142),
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            price,
-            style: text.bodySmall?.copyWith(
-              color: const Color(0xFF00D09E),
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
