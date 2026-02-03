@@ -67,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
       );
 
       // If unlocked successfully, reload progress
-      if (result == true) {
+      if (result == true && mounted) {
         _loadProgress();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

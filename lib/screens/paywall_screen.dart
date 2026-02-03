@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/extensions/context_theme.dart';
 import '../core/storage_keys.dart';
-import 'program_screen.dart';
 
 class PaywallScreen extends StatelessWidget {
   const PaywallScreen({super.key});

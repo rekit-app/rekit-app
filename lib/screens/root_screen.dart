@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../core/extensions/context_theme.dart';
 import 'home_screen.dart';
 import 'records_screen.dart';
+import 'my_screen.dart';
 
 class RootScreen extends StatefulWidget {
   const RootScreen({super.key});
@@ -16,11 +17,7 @@ class _RootScreenState extends State<RootScreen> {
   static const _screens = <Widget>[
     HomeScreen(),
     RecordsScreen(),
-    _PlaceholderScreen(
-      icon: Icons.person_rounded,
-      title: '준비 중이에요',
-      subtitle: '내 정보와 설정 기능이\n곧 추가될 예정이에요',
-    ),
+    MyScreen(),
   ];
 
   void _onTabTapped(int index) {
@@ -58,53 +55,6 @@ class _RootScreenState extends State<RootScreen> {
             label: '마이',
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ─── Placeholder Screen ─────────────────────────────────────
-
-class _PlaceholderScreen extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-
-  const _PlaceholderScreen({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 64,
-              color: context.colorScheme.primary.withValues(alpha: 0.4),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              title,
-              style: context.titleLarge.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              subtitle,
-              style: context.bodyMedium.copyWith(
-                color: context.colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
       ),
     );
   }
