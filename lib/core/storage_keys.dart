@@ -12,6 +12,9 @@ class StorageKeys {
   static const String expertQuestionCount = 'expert_question_count';
   static const String expertQuestionWeekStart = 'expert_question_week_start';
 
+  // workout history (records tab)
+  static const String workoutRecords = 'workout_records';
+
   // legacy (삭제 예정)
   static const String legacyDiagnosisCode = 'diagnosis_code';
   static const String legacyDay = 'day';

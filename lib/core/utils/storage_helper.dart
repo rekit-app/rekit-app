@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../storage_keys.dart';
 import '../config/stage_config.dart';
+import '../models/workout_record.dart';
 
 /// Read-only: 현재 진행 상태 (diagnosisCode, day, stage) 한번에 읽기
 Future<({String? diagnosisCode, int day, int stage})> loadProgress() async {
@@ -58,5 +59,44 @@ Future<bool> advanceDay({int increment = 1}) async {
   } catch (e) {
     debugPrint('storage error: $e');
     return false;
+  }
+}
+
+/// Save a workout record (deduplicate by diagnosisCode + stage + day)
+///
+/// If a record with the same (dx, stage, day) exists, do NOT save.
+Future<void> saveWorkoutRecord(WorkoutRecord record) async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final existingJson = prefs.getString(StorageKeys.workoutRecords) ?? '[]';
+    final records = WorkoutRecord.decodeList(existingJson);
+
+    // Check for duplicate by unique key
+    final exists = records.any((r) => r.uniqueKey == record.uniqueKey);
+    if (exists) {
+      debugPrint('Workout record already exists: ${record.uniqueKey}');
+      return;
+    }
+
+    // Insert at beginning (latest first)
+    records.insert(0, record);
+    await prefs.setString(StorageKeys.workoutRecords, WorkoutRecord.encodeList(records));
+  } catch (e) {
+    debugPrint('storage error: $e');
+  }
+}
+
+/// Load all workout records (latest first)
+Future<List<WorkoutRecord>> loadWorkoutRecords() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final json = prefs.getString(StorageKeys.workoutRecords) ?? '[]';
+    final records = WorkoutRecord.decodeList(json);
+    // Guarantee latest-first order at storage level
+    records.sort((a, b) => b.completedAt.compareTo(a.completedAt));
+    return records;
+  } catch (e) {
+    debugPrint('storage error: $e');
+    return [];
   }
 }

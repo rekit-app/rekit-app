@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/extensions/context_theme.dart';
 import '../core/storage_keys.dart';
+import '../core/models/workout_record.dart';
+import '../core/utils/storage_helper.dart';
 import '../core/ui/soft_card.dart';
 import 'ask_expert_screen.dart';
 
@@ -71,9 +73,12 @@ class _RecordsScreenState extends State<RecordsScreen> {
   late DateTime _today;
   late String _dateRangeText;
 
-  // Record state
+  // Body condition state
   RecordEntry? _todayRecord;
   final List<RecordEntry> _recentRecords = [];
+
+  // Workout history state
+  final List<WorkoutRecord> _workoutRecords = [];
 
   @override
   void initState() {
@@ -106,6 +111,11 @@ class _RecordsScreenState extends State<RecordsScreen> {
       }
     }
 
+    // Load workout records
+    final workoutRecords = await loadWorkoutRecords();
+
+    if (!mounted) return;
+
     setState(() {
       _today = today;
       _dateRangeText = _formatDateRange(weekAgo, today);
@@ -113,6 +123,9 @@ class _RecordsScreenState extends State<RecordsScreen> {
       _recentRecords
         ..clear()
         ..addAll(records);
+      _workoutRecords
+        ..clear()
+        ..addAll(workoutRecords);
       _loading = false;
     });
   }
@@ -232,29 +245,33 @@ class _RecordsScreenState extends State<RecordsScreen> {
                   _RecordsList(records: _recentRecords, today: _today),
               ],
 
-              // Exercise tab (placeholder)
+              // Workout history tab
               if (_selectedTab == 1) ...[
-                const SizedBox(height: 48),
-                Center(
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.fitness_center_rounded,
-                        size: 48,
-                        color: context.colorScheme.onSurfaceVariant
-                            .withValues(alpha: 0.3),
+                // Header row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '최근 기록',
+                      style: context.titleSmall.copyWith(
+                        fontWeight: FontWeight.w700,
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        '운동 기록은 준비 중이에요',
-                        style: context.titleSmall.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: context.colorScheme.onSurfaceVariant,
-                        ),
+                    ),
+                    Text(
+                      _dateRangeText,
+                      style: context.bodySmall.copyWith(
+                        color: context.colorScheme.onSurfaceVariant,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 16),
+
+                // Workout records list or empty state
+                if (_workoutRecords.isEmpty)
+                  const _WorkoutEmptyStateCard()
+                else
+                  _WorkoutRecordsList(records: _workoutRecords, today: _today),
               ],
 
               const SizedBox(height: 32),
@@ -492,6 +509,131 @@ class _RecordsList extends StatelessWidget {
                       style: context.titleSmall.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+}
+
+// ─── Workout Empty State ─────────────────────────────────────
+
+class _WorkoutEmptyStateCard extends StatelessWidget {
+  const _WorkoutEmptyStateCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return SoftCard(
+      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
+      child: Column(
+        children: [
+          Icon(
+            Icons.directions_run_rounded,
+            size: 48,
+            color: context.colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            '아직 운동 기록이 없어요',
+            style: context.titleSmall.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '오늘의 루틴을 완료하면 여기에 표시돼요',
+            style: context.bodySmall.copyWith(
+              color: context.colorScheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Workout Records List ────────────────────────────────────
+
+class _WorkoutRecordsList extends StatelessWidget {
+  final List<WorkoutRecord> records;
+  final DateTime today;
+
+  const _WorkoutRecordsList({required this.records, required this.today});
+
+  String _stageName(int stage) {
+    return stage == 1 ? 'Stage 1' : 'Stage 2';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '완료한 운동',
+          style: context.bodySmall.copyWith(
+            fontWeight: FontWeight.w600,
+            color: context.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 12),
+        ...records.take(10).map((record) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: SoftCard(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: Row(
+                children: [
+                  // Relative day label
+                  SizedBox(
+                    width: 60,
+                    child: Text(
+                      record.relativeDay(today),
+                      style: context.bodySmall.copyWith(
+                        color: context.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  // Checkmark icon
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: context.colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.check_rounded,
+                      color: context.colorScheme.primary,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // Day and Stage info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Day ${record.day}',
+                          style: context.titleSmall.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          _stageName(record.stage),
+                          style: context.bodySmall.copyWith(
+                            color: context.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

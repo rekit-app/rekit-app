@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../core/extensions/context_theme.dart';
 import '../core/storage_keys.dart';
 import '../core/utils/storage_helper.dart';
+import '../core/models/workout_record.dart';
 import '../features/diagnosis/data/programs.dart';
 import '../core/ui/soft_card.dart';
 
@@ -162,6 +163,14 @@ class _ProgramScreenState extends State<ProgramScreen>
 
   Future<void> _completeDay() async {
     if (diagnosisCode == null || diagnosisCode!.isEmpty) return;
+
+    // Save workout record BEFORE advancing day
+    await saveWorkoutRecord(WorkoutRecord(
+      completedAt: DateTime.now(),
+      diagnosisCode: diagnosisCode!,
+      stage: stage,
+      day: day,
+    ));
 
     final enteredStage2 = await advanceDay(increment: 1);
 
