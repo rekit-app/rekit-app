@@ -137,81 +137,115 @@ class _HomeScreenState extends State<HomeScreen> {
     final progress = getStageProgress(day, maxDays);
 
     return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Greeting Header
-              const _GreetingHeader(),
-              const SizedBox(height: 24),
-
-              // Today Program Hero Card
-              TodayProgramHeroCard(
-                programTitle: '어깨 가동성 운동 프로그램',
-                stage: stage,
-                day: day,
-                maxDays: maxDays,
-                exerciseCount: routine.length,
-                progress: progress,
-                onTap: _handleHeroCardTap,
-              ),
-              const SizedBox(height: 32),
-
-              // Discovery Section
-              const _DiscoverySection(),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ─── _GreetingHeader ────────────────────────────────────────
-
-class _GreetingHeader extends StatelessWidget {
-  const _GreetingHeader();
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final text = Theme.of(context).textTheme;
-
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '안녕하세요, 찬수님',
-                style: text.headlineMedium,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '오늘도 꾸준한 회복을 응원합니다',
-                style: text.bodyMedium?.copyWith(
-                  color: colors.onSurfaceVariant,
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Gradient header area ──
+            Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFF00D09E), Color(0xFF00A881)],
+                ),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(32),
+                  bottomRight: Radius.circular(32),
                 ),
               ),
-            ],
-          ),
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Greeting Header — white text on gradient
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '안녕하세요, 찬수님',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineMedium
+                                      ?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '오늘도 꾸준한 회복을 응원합니다',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        color: Colors.white
+                                            .withValues(alpha: 0.85),
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: const Icon(
+                              Icons.person_outline_rounded,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Today Program Hero Card — white card on gradient
+                      TodayProgramHeroCard(
+                        programTitle: '어깨 가동성 운동 프로그램',
+                        stage: stage,
+                        day: day,
+                        maxDays: maxDays,
+                        exerciseCount: routine.length,
+                        progress: progress,
+                        onTap: _handleHeroCardTap,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            // ── White content area ──
+            const Padding(
+              padding: EdgeInsets.fromLTRB(20, 24, 20, 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Promo Banner
+                  _PromoBanner(),
+                  SizedBox(height: 28),
+
+                  // Workout Routines
+                  _WorkoutRoutinesSection(),
+                  SizedBox(height: 28),
+
+                  // Rehab Tools
+                  _RehabToolsSection(),
+                ],
+              ),
+            ),
+          ],
         ),
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: colors.primaryContainer,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Icon(
-            Icons.person_outline_rounded,
-            color: colors.primary,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
@@ -240,7 +274,6 @@ class TodayProgramHeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
     final progressPercent = (progress * 100).toInt();
 
@@ -249,11 +282,11 @@ class TodayProgramHeroCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: colors.surface,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: colors.shadow,
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 24,
               offset: const Offset(0, 8),
             ),
@@ -269,12 +302,12 @@ class TodayProgramHeroCard extends StatelessWidget {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: colors.primaryContainer,
+                    color: const Color(0xFFD4F5EC),
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.fitness_center_rounded,
-                    color: colors.primary,
+                    color: Color(0xFF00D09E),
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -286,13 +319,14 @@ class TodayProgramHeroCard extends StatelessWidget {
                         programTitle,
                         style: text.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
+                          color: const Color(0xFF2D3142),
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         'Stage $stage · Day $day / $maxDays · $exerciseCount개 운동',
                         style: text.bodySmall?.copyWith(
-                          color: colors.onSurfaceVariant,
+                          color: const Color(0xFF6E7787),
                         ),
                       ),
                     ],
@@ -309,8 +343,9 @@ class TodayProgramHeroCard extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: progress,
                 minHeight: 6,
-                backgroundColor: colors.outlineVariant,
-                valueColor: AlwaysStoppedAnimation(colors.primary),
+                backgroundColor: const Color(0xFFE2E8E5),
+                valueColor:
+                    const AlwaysStoppedAnimation(Color(0xFF00D09E)),
               ),
             ),
 
@@ -322,7 +357,7 @@ class TodayProgramHeroCard extends StatelessWidget {
               child: Text(
                 '$progressPercent% 완료',
                 style: text.labelSmall?.copyWith(
-                  color: colors.onSurfaceVariant,
+                  color: const Color(0xFF6E7787),
                 ),
               ),
             ),
@@ -337,7 +372,7 @@ class TodayProgramHeroCard extends StatelessWidget {
                 child: Text(
                   '오늘 운동 시작하기',
                   style: text.titleMedium?.copyWith(
-                    color: colors.onPrimary,
+                    color: Colors.white,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -350,100 +385,202 @@ class TodayProgramHeroCard extends StatelessWidget {
   }
 }
 
-// ─── _DiscoverySection ──────────────────────────────────────
+// ─── _PromoBanner ───────────────────────────────────────────
 
-class _DiscoverySection extends StatelessWidget {
-  const _DiscoverySection();
+class _PromoBanner extends StatelessWidget {
+  const _PromoBanner();
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final colors = Theme.of(context).colorScheme;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            const Color(0xFF00D09E).withValues(alpha: 0.1),
+            const Color(0xFF00A881).withValues(alpha: 0.08),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: const Color(0xFF00D09E).withValues(alpha: 0.2),
+        ),
+      ),
+      child: Row(
+        children: [
+          // Icon
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: const Color(0xFF00D09E).withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(
+              Icons.shopping_bag_rounded,
+              color: Color(0xFF00D09E),
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: 16),
+          // Text
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Rekit 재활 키트',
+                  style: text.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF2D3142),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '전문가가 선별한 재활 도구 세트',
+                  style: text.bodySmall?.copyWith(
+                    color: const Color(0xFF6E7787),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Buy button
+          ElevatedButton(
+            onPressed: () {},
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: Text(
+              '보러가기',
+              style: text.labelLarge?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── _WorkoutRoutinesSection ────────────────────────────────
+
+class _WorkoutRoutinesSection extends StatelessWidget {
+  const _WorkoutRoutinesSection();
+
+  static const _routines = [
+    _RoutineData(
+      title: '어깨 가동성',
+      difficulty: '초급',
+      duration: '15분',
+      icon: Icons.accessibility_new_rounded,
+    ),
+    _RoutineData(
+      title: '목 스트레칭',
+      difficulty: '초급',
+      duration: '10분',
+      icon: Icons.person_rounded,
+    ),
+    _RoutineData(
+      title: '코어 안정화',
+      difficulty: '중급',
+      duration: '20분',
+      icon: Icons.airline_seat_recline_normal_rounded,
+    ),
+    _RoutineData(
+      title: '전신 밸런스',
+      difficulty: '중급',
+      duration: '25분',
+      icon: Icons.self_improvement_rounded,
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '더 알아보기',
-          style: text.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+          '추천 운동 루틴',
+          style: text.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: const Color(0xFF2D3142),
+          ),
         ),
         const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: _DiscoveryCard(
-                icon: Icons.history_rounded,
-                iconColor: colors.tertiary,
-                iconBgColor: colors.tertiaryContainer,
-                label: '운동 기록',
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _DiscoveryCard(
-                icon: Icons.auto_graph_rounded,
-                iconColor: colors.secondary,
-                iconBgColor: colors.secondaryContainer,
-                label: '회복 통계',
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _DiscoveryCard(
-                icon: Icons.menu_book_rounded,
-                iconColor: colors.primary,
-                iconBgColor: colors.primaryContainer,
-                label: '재활 가이드',
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _DiscoveryCard(
-                icon: Icons.settings_rounded,
-                iconColor: colors.onSurfaceVariant,
-                iconBgColor: colors.surfaceContainerHighest,
-                label: '설정',
-              ),
-            ),
-          ],
+        SizedBox(
+          height: 160,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: _routines.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              final r = _routines[index];
+              return _RoutineCard(
+                title: r.title,
+                difficulty: r.difficulty,
+                duration: r.duration,
+                icon: r.icon,
+              );
+            },
+          ),
         ),
       ],
     );
   }
 }
 
-// ─── _DiscoveryCard ─────────────────────────────────────────
-
-class _DiscoveryCard extends StatelessWidget {
+class _RoutineData {
+  final String title;
+  final String difficulty;
+  final String duration;
   final IconData icon;
-  final Color iconColor;
-  final Color iconBgColor;
-  final String label;
 
-  const _DiscoveryCard({
+  const _RoutineData({
+    required this.title,
+    required this.difficulty,
+    required this.duration,
     required this.icon,
-    required this.iconColor,
-    required this.iconBgColor,
-    required this.label,
+  });
+}
+
+class _RoutineCard extends StatelessWidget {
+  final String title;
+  final String difficulty;
+  final String duration;
+  final IconData icon;
+
+  const _RoutineCard({
+    required this.title,
+    required this.difficulty,
+    required this.duration,
+    required this.icon,
   });
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      width: 140,
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: colors.surface,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: colors.shadow,
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -456,15 +593,164 @@ class _DiscoveryCard extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: iconBgColor,
+              color: const Color(0xFFD4F5EC),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(icon, color: iconColor, size: 22),
+            child: Icon(icon, color: const Color(0xFF00D09E), size: 22),
           ),
-          const SizedBox(height: 14),
+          const Spacer(),
           Text(
-            label,
-            style: text.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+            title,
+            style: text.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF2D3142),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '$difficulty · $duration',
+            style: text.bodySmall?.copyWith(
+              color: const Color(0xFF6E7787),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── _RehabToolsSection ─────────────────────────────────────
+
+class _RehabToolsSection extends StatelessWidget {
+  const _RehabToolsSection();
+
+  static const _tools = [
+    _ToolData(
+      name: '세라밴드 (경량)',
+      price: '₩12,900',
+      icon: Icons.fitness_center_rounded,
+    ),
+    _ToolData(
+      name: '폼롤러 45cm',
+      price: '₩24,900',
+      icon: Icons.sports_gymnastics_rounded,
+    ),
+    _ToolData(
+      name: '마사지볼 세트',
+      price: '₩15,900',
+      icon: Icons.circle_outlined,
+    ),
+    _ToolData(
+      name: '밸런스 패드',
+      price: '₩29,900',
+      icon: Icons.square_foot_rounded,
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '재활 도구',
+          style: text.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: const Color(0xFF2D3142),
+          ),
+        ),
+        const SizedBox(height: 16),
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: 1.1,
+          children: _tools.map((tool) {
+            return _ToolCard(
+              name: tool.name,
+              price: tool.price,
+              icon: tool.icon,
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+}
+
+class _ToolData {
+  final String name;
+  final String price;
+  final IconData icon;
+
+  const _ToolData({
+    required this.name,
+    required this.price,
+    required this.icon,
+  });
+}
+
+class _ToolCard extends StatelessWidget {
+  final String name;
+  final String price;
+  final IconData icon;
+
+  const _ToolCard({
+    required this.name,
+    required this.price,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F8F6),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, color: const Color(0xFF00D09E), size: 24),
+          ),
+          const Spacer(),
+          Text(
+            name,
+            style: text.titleSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF2D3142),
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            price,
+            style: text.bodySmall?.copyWith(
+              color: const Color(0xFF00D09E),
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ],
       ),

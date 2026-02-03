@@ -35,113 +35,126 @@ class RedFlagScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
 
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Close button
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 8, top: 8),
-                child: IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close_rounded),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF00D09E), Color(0xFF00A881)],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Close button — white on gradient
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 8, top: 8),
+                  child: IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close_rounded, color: Colors.white),
+                  ),
                 ),
               ),
-            ),
 
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 8),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 8),
 
-                    // Hero illustration
-                    Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color: colors.errorContainer,
-                        shape: BoxShape.circle,
+                      // Hero illustration — white circle on gradient
+                      Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          heroIcon,
+                          size: 48,
+                          color: Colors.white,
+                        ),
                       ),
-                      child: Icon(
-                        heroIcon,
-                        size: 48,
-                        color: colors.error,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
+                      const SizedBox(height: 24),
 
-                    // Title
-                    Text(
-                      '$bodyPartLabel 진단 전 확인',
-                      style: text.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Warning message
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: colors.errorContainer,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Text(
-                        warningMessage,
-                        style: text.bodyMedium?.copyWith(
-                          color: colors.onErrorContainer,
-                          fontWeight: FontWeight.w600,
-                          height: 1.5,
+                      // Title — white on gradient
+                      Text(
+                        '$bodyPartLabel 진단 전 확인',
+                        style: text.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
                         ),
                         textAlign: TextAlign.center,
                       ),
+                      const SizedBox(height: 8),
+
+                      // Warning message — semi-transparent white card
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Text(
+                          warningMessage,
+                          style: text.bodyMedium?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            height: 1.5,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Red flag items — white cards
+                      ...items.map((item) => _RedFlagCard(item: item)),
+
+                      const SizedBox(height: 8),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Bottom action buttons
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+                child: Column(
+                  children: [
+                    // Safe — proceed (white button)
+                    _ActionCard(
+                      icon: Icons.check_circle_outline_rounded,
+                      label: confirmLabel,
+                      iconColor: const Color(0xFF00D09E),
+                      borderColor: Colors.white,
+                      backgroundColor: Colors.white,
+                      textColor: const Color(0xFF00D09E),
+                      onTap: onConfirm,
                     ),
-                    const SizedBox(height: 24),
-
-                    // Red flag items
-                    ...items.map((item) => _RedFlagCard(item: item)),
-
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12),
+                    // Danger — go back (outlined white)
+                    _ActionCard(
+                      icon: Icons.local_hospital_rounded,
+                      label: '해당 사항 있음, 병원 방문',
+                      iconColor: Colors.white,
+                      borderColor: Colors.white.withValues(alpha: 0.6),
+                      backgroundColor: Colors.transparent,
+                      textColor: Colors.white,
+                      onTap: () => Navigator.pop(context),
+                    ),
                   ],
                 ),
               ),
-            ),
-
-            // Bottom action buttons
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
-              child: Column(
-                children: [
-                  // Safe — proceed
-                  _ActionCard(
-                    icon: Icons.check_circle_outline_rounded,
-                    label: confirmLabel,
-                    iconColor: colors.primary,
-                    borderColor: colors.primary,
-                    onTap: onConfirm,
-                  ),
-                  const SizedBox(height: 12),
-                  // Danger — go back
-                  _ActionCard(
-                    icon: Icons.local_hospital_rounded,
-                    label: '해당 사항 있음, 병원 방문',
-                    iconColor: colors.error,
-                    borderColor: colors.error,
-                    onTap: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -157,7 +170,6 @@ class _RedFlagCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
 
     return Padding(
@@ -166,13 +178,13 @@ class _RedFlagCard extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: colors.surface,
-          borderRadius: BorderRadius.circular(16),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: colors.shadow,
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
@@ -183,10 +195,10 @@ class _RedFlagCard extends StatelessWidget {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: colors.errorContainer,
+                color: const Color(0xFFFFDAD6),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(item.icon, color: colors.error, size: 18),
+              child: Icon(item.icon, color: const Color(0xFFBA1A1A), size: 18),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -197,13 +209,14 @@ class _RedFlagCard extends StatelessWidget {
                     item.title,
                     style: text.titleSmall?.copyWith(
                       fontWeight: FontWeight.w700,
+                      color: const Color(0xFF2D3142),
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     item.description,
                     style: text.bodySmall?.copyWith(
-                      color: colors.onSurfaceVariant,
+                      color: const Color(0xFF6E7787),
                       height: 1.5,
                     ),
                   ),
@@ -224,6 +237,8 @@ class _ActionCard extends StatelessWidget {
   final String label;
   final Color iconColor;
   final Color borderColor;
+  final Color backgroundColor;
+  final Color textColor;
   final VoidCallback onTap;
 
   const _ActionCard({
@@ -232,11 +247,12 @@ class _ActionCard extends StatelessWidget {
     required this.iconColor,
     required this.borderColor,
     required this.onTap,
+    this.backgroundColor = Colors.white,
+    this.textColor = const Color(0xFF2D3142),
   });
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
 
     return GestureDetector(
@@ -245,16 +261,9 @@ class _ActionCard extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
         decoration: BoxDecoration(
-          color: colors.surface,
-          borderRadius: BorderRadius.circular(16),
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(24),
           border: Border.all(color: borderColor, width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: colors.shadow,
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -265,7 +274,7 @@ class _ActionCard extends StatelessWidget {
               label,
               style: text.titleSmall?.copyWith(
                 fontWeight: FontWeight.w700,
-                color: borderColor,
+                color: textColor,
               ),
             ),
           ],
