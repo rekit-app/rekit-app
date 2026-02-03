@@ -51,7 +51,6 @@ class _IntroScreenState extends State<IntroScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              // PageView
               Expanded(
                 child: PageView(
                   controller: _pageController,
@@ -62,40 +61,37 @@ class _IntroScreenState extends State<IntroScreen> {
                   },
                   children: const [
                     _IntroPage(
-                      icon: Icons.search_rounded,
-                      title: '진단',
-                      subtitle: '통증의 원인을 찾아드립니다',
-                      description: '간단한 질문으로 어깨·목·허리 통증의\n정확한 원인을 파악합니다.',
+                      icon: Icons.tune_rounded,
+                      title: '내 몸에 맞춘\n재활 루틴 설계',
+                      subtitle: '간단한 상태 체크로\n오늘의 회복 루틴을 추천해드려요',
                     ),
                     _IntroPage(
-                      icon: Icons.assignment_rounded,
-                      title: '처방',
-                      subtitle: '맞춤 운동 프로그램',
-                      description: '진단 결과에 기반한\n단계별 재활 운동을 제공합니다.',
+                      icon: Icons.verified_rounded,
+                      title: '현장 기반의\n검증된 데이터',
+                      subtitle: '도수치료 환자 6만 건 데이터 기반\n간호사 · 퍼스널 트레이너 · 필라테스 강사 협업',
+                      footer: '물리치료사가 직접 설계한 회복 프로그램',
                     ),
                     _IntroPage(
-                      icon: Icons.trending_up_rounded,
-                      title: '회복',
-                      subtitle: '꾸준한 회복을 함께',
-                      description: '매일의 운동 기록을 추적하고\n완전한 회복까지 함께합니다.',
+                      icon: Icons.self_improvement_rounded,
+                      title: '회복은\n일상이 되어야 하니까',
+                      subtitle: '무리하지 않고\n꾸준히 할 수 있는 재활을 만듭니다',
+                      footer: 'Made by The Answer',
+                      subFooter: '재활 현장의 경험을 바탕으로',
                     ),
                   ],
                 ),
               ),
 
-              // Bottom section: indicator + button
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
                 child: Column(
                   children: [
-                    // Page indicator
                     _PageDots(
                       currentPage: _currentPage,
                       totalPages: _totalPages,
                     ),
                     const SizedBox(height: 32),
 
-                    // CTA button — white on gradient
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -131,13 +127,15 @@ class _IntroPage extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
-  final String description;
+  final String? footer;
+  final String? subFooter;
 
   const _IntroPage({
     required this.icon,
     required this.title,
     required this.subtitle,
-    required this.description,
+    this.footer,
+    this.subFooter,
   });
 
   @override
@@ -149,53 +147,65 @@ class _IntroPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Icon illustration — white circle on gradient
           Container(
-            width: 140,
-            height: 140,
+            width: 120,
+            height: 120,
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: Icon(
               icon,
-              size: 64,
+              size: 56,
               color: Colors.white,
             ),
           ),
-          const SizedBox(height: 48),
+          const SizedBox(height: 40),
 
-          // Title — white on gradient
           Text(
             title,
-            style: text.headlineLarge?.copyWith(
+            style: text.headlineSmall?.copyWith(
               fontWeight: FontWeight.w800,
               color: Colors.white,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-
-          // Subtitle — white on gradient
-          Text(
-            subtitle,
-            style: text.titleLarge?.copyWith(
-              color: Colors.white.withValues(alpha: 0.9),
-              fontWeight: FontWeight.w600,
+              height: 1.4,
             ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
 
-          // Description — white on gradient
           Text(
-            description,
+            subtitle,
             style: text.bodyLarge?.copyWith(
-              color: Colors.white.withValues(alpha: 0.8),
+              color: Colors.white.withValues(alpha: 0.85),
+              fontWeight: FontWeight.w500,
               height: 1.6,
             ),
             textAlign: TextAlign.center,
           ),
+
+          if (footer != null) ...[
+            const SizedBox(height: 24),
+            Text(
+              footer!,
+              style: text.bodySmall?.copyWith(
+                color: Colors.white.withValues(alpha: 0.55),
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+
+          if (subFooter != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              subFooter!,
+              style: text.bodySmall?.copyWith(
+                color: Colors.white.withValues(alpha: 0.4),
+                fontWeight: FontWeight.w400,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ],
       ),
     );
